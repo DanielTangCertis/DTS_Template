@@ -2,9 +2,9 @@
   <div class="alease_title_left">
     <Icon :icon="icon" :fontSize="24" class="title_icon" />
     <div class="title-text">
-      <slot>设备状态</slot>
+      <slot>Equipment State</slot>
       <div class="title-text-bottom">
-        <slot name="slot-bottom">Equipment state</slot>
+        <!-- <slot name="slot-bottom">Equipment state</slot> -->
       </div>
     </div>
   </div>

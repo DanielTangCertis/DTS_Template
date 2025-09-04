@@ -5,26 +5,27 @@
     leave-active-class="animate__animated animate__faster animate__fadeOutUp ">
     <div v-show="UIShow" class="header">
       <div class="logo">
-        <div class="tit">DTS SYSTEM</div>
+        <!-- <div class="title">CERTIS</div> -->
+        <img src="/src/assets/images/certis_logo/certis-logo-white.png" alt="logo" class="logo-img" />
       </div>
       <div class="tool">
         <div @click="showLayerTree()">
-          <el-tooltip class="box-item" effect="dark" content="图层树" placement="bottom">
+          <el-tooltip class="box-item" effect="dark" content="Layer Tree" placement="bottom">
             <Icon :color="layerTreeShow ? '#7afafe' : '#fff'" :font-size="30" icon="tucengshu" />
           </el-tooltip>
         </div>
         <div @click="showAnimation()">
-          <el-tooltip class="box-item" effect="dark" content="导览" placement="bottom">
+          <el-tooltip class="box-item" effect="dark" content="Animated Tours" placement="bottom">
             <Icon :color="animationShow ? '#7afafe' : '#fff'" :font-size="26" icon="xunimanyou" />
           </el-tooltip>
         </div>
         <div @click="showWeather()">
-          <el-tooltip class="box-item" effect="dark" content="气象" placement="bottom">
+          <el-tooltip class="box-item" effect="dark" content="Weather" placement="bottom">
             <Icon :color="weatherShow ? '#7afafe' : '#fff'" :font-size="30" icon="qixiangjiance" />
           </el-tooltip>
         </div>
         <div @click="showUI()">
-          <el-tooltip class="box-item" effect="dark" content="界面显隐" placement="bottom">
+          <el-tooltip class="box-item" effect="dark" content="Toggle HUD" placement="bottom">
             <Icon :color="UIShow ? '#7afafe' : '#fff'" :font-size="26" icon="tiankonghe" />
           </el-tooltip>
         </div>
@@ -40,7 +41,7 @@
     enter-active-class="animate__animated animate__faster  animate__fadeInDown "
     leave-active-class="animate__animated animate__faster animate__fadeOutUp ">
     <div v-show="!UIShow" class="showUI" @click="showUI()">
-      <el-tooltip effect="dark" content="界面显隐" placement="bottom">
+      <el-tooltip effect="dark" content="Toggle HUD" placement="bottom">
         <Icon :color="UIShow ? '#7afafe' : '#fff'" :font-size="26" icon="tiankonghe" />
       </el-tooltip>
     </div>
@@ -135,18 +136,23 @@ onUnmounted(() => {
     top: 0;
     margin: auto;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
     justify-content: center;
     cursor: pointer;
 
-    .tit {
+    .logo-img {
+      @include Width(150);
+      @include MarginRight(10);
+    }
+
+    .title {
       @include FontSize(24);
       @include LetterSpacing(3);
       @include wHeight(40);
       font-family: Oppo, serif;
-
       @include MarginBottom(20);
-      font-weight: 600;
+      font-weight: 1000;
       color: #fff
     }
 

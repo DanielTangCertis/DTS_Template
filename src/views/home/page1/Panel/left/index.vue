@@ -1,7 +1,7 @@
 <template>
   <Left_box :delay="0.3">
     <div class="contentBox">
-      <Lease_title>经济</Lease_title>
+      <Lease_title>Expenditure</Lease_title>
       <div class="row-content">
         <div class="traffic-data">
           <div class="row">
@@ -10,10 +10,10 @@
                 <img src="@/assets/images/panel/icon_gdp@2x.png" />
               </IconBox>
               <div class="traffic-content">
-                <div class="label">GDP总额</div>
+                <div class="label">YTD</div>
                 <div class="value">
                   23958.3
-                  <div class="suffix">亿元</div>
+                  <div class="suffix">k</div>
                 </div>
               </div>
             </div>
@@ -22,10 +22,10 @@
                 <img src="@/assets/images/panel/icon_income@2x.png" />
               </IconBox>
               <div class="traffic-content">
-                <div class="label">居民人均收入</div>
+                <div class="label">Monthly Maintenance</div>
                 <div class="value">
-                  7.6
-                  <div class="suffix">万元</div>
+                  4.639
+                  <div class="suffix">k</div>
                 </div>
               </div>
             </div>
@@ -34,10 +34,10 @@
                 <img src="@/assets/images/panel/icon_traffic@2x.png" />
               </IconBox>
               <div class="traffic-content">
-                <div class="label">固定资产投资</div>
+                <div class="label">Monthly Utilities</div>
                 <div class="value">
-                  5744.2
-                  <div class="suffix">亿元</div>
+                  11.744
+                  <div class="suffix">k</div>
                 </div>
               </div>
             </div>
@@ -46,10 +46,10 @@
                 <img src="@/assets/images/panel/icon_stuck@2x.png" />
               </IconBox>
               <div class="traffic-content">
-                <div class="label">全市税收收入</div>
+                <div class="label">Monthly Security</div>
                 <div class="value">
-                  2303
-                  <div class="suffix">亿元</div>
+                  8.5
+                  <div class="suffix">k</div>
                 </div>
               </div>
             </div>
@@ -58,11 +58,11 @@
       </div>
     </div>
     <div class="contentBox">
-      <Lease_title>各区面积概况(km²)</Lease_title>
+      <Lease_title>Incidents Reported by Category (YTD)</Lease_title>
       <Echarts :options="option2()" :height="400" :width="400"></Echarts>
     </div>
     <div class="contentBox">
-      <Lease_title>各区GDP TOP6(亿元)</Lease_title>
+      <Lease_title>Standard deviation of incidents reported by Category</Lease_title>
       <Echarts :options="option3()" :height="250" :width="350"></Echarts>
     </div>
   </Left_box>

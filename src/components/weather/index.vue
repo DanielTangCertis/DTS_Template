@@ -33,7 +33,7 @@
           <div class="flex">
             <div class="open-dark">
               <div class="dark-item">
-                <span>黑暗模式:</span>
+                <span>Toggle Scene Lighting:</span>
                 <el-switch
                   v-model="isDark"
                   @change="changeDarkMode"
@@ -42,7 +42,7 @@
                 />
               </div>
             </div>
-            <div class="init"><span @click="weatherInit">初始化</span></div>
+            <div class="init"><span @click="weatherInit">Reset</span></div>
           </div>
         </div>
       </div>
@@ -52,16 +52,16 @@
   <script setup lang="ts">
   import { ref } from 'vue'
   import { changeWeather } from './methods/changeWeather'
-  import sunnyIcon from './img/晴天.png'
-import cloudyIcon from './img/多云.png'
-import rainIcon from './img/下雨.png'
-import snowIcon from './img/下雪.png'
+  import sunnyIcon from './img/Sunny.png'
+import cloudyIcon from './img/Cloudy.png'
+import rainIcon from './img/Rain.png'
+import snowIcon from './img/Snow.png'
   const currentTime = ref(8 * 60 * 60 + 53 * 60)
   const isDark = ref(false)
   
   const weatherItems = [
     {
-      name: '晴天',
+      name: 'Sunny',
       icon: sunnyIcon,
       options: {
         cloudDensity: 0.1,
@@ -69,7 +69,7 @@ import snowIcon from './img/下雪.png'
       },
     },
     {
-      name: '多云',
+      name: 'Cloudy',
       icon: cloudyIcon,
       options: {
         cloudDensity: 0.8,
@@ -79,7 +79,7 @@ import snowIcon from './img/下雪.png'
       },
     },
     {
-      name: '下雨',
+      name: 'Rain',
       icon: rainIcon,
       options: {
         cloudDensity: 0.8,
@@ -90,7 +90,7 @@ import snowIcon from './img/下雪.png'
       },
     },
     {
-      name: '下雪',
+      name: 'Snow',
       icon: snowIcon,
       options: {
         cloudDensity: 0.8,
@@ -138,14 +138,14 @@ import snowIcon from './img/下雪.png'
   <style lang="scss" scoped>
   .weather {
       position: absolute;
-      @include Width(260);
+      // @include Width(260);
       @include Top(80);
       @include Right(40);
       @include Padding(10, 10, 10, 10);
       border-radius: 2%;
       margin: auto;
       overflow-y: auto;
-      overflow-x: hidden;
+      // overflow-x: hidden;
       z-index: 10;
       background: rgba(0, 0, 0, 0.331);
           font-family: Tencent;
@@ -155,6 +155,7 @@ import snowIcon from './img/下雪.png'
           .weather-items {
               display: flex;
               @include MarginBottom(10);
+              white-space: nowrap;
               .item {
                   display: flex;
                   flex-direction: column;

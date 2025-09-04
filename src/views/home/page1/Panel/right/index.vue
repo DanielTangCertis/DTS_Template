@@ -2,11 +2,11 @@
     <Right_box :delay="0.3">
         <div class="div">
             <div class="contentBox">
-                <Lease_title>城市人口流动</Lease_title>
+                <Lease_title>Crowd Flow</Lease_title>
                 <Echarts :options="option1()" :height="250" :width="350"></Echarts>
             </div>
             <div class="contentBox">
-                <Lease_title>城市人口概况</Lease_title>
+                <Lease_title>Personnel Overview</Lease_title>
                 <div class="info_list">
                     <div class="item" v-for="item in personInfoList" :key="item.info">
                         <div class="info">
@@ -21,7 +21,7 @@
                 </div>
             </div>
             <div class="contentBox">
-                <Lease_title>各区人口概况TOP5(万人)</Lease_title>
+                <Lease_title>Add Label Here</Lease_title>
                 <Echarts :options="option4()" container="emergencylbox2" :height="300" :width="350"></Echarts>
             </div>
         </div>
@@ -38,28 +38,28 @@ import { reactive } from 'vue'
 
 const personInfoList = reactive([
     {
-        count: 128478,
-        info: '常住人口',
-        unit: '万人'
-    },
-    {
-        count: 831.8,
-        info: '外来人口',
-        unit: '万人'
-    },
-    {
-        count: 1052.62,
-        info: '城镇人口',
-        unit: '万人'
-    },
-    {
-        count: 7.08,
-        info: '户籍人口出生率',
+        count: 57,
+        info: 'Staff',
         unit: '%'
     },
     {
-        count: 0.28,
-        info: '户籍人口自然增长率',
+        count: 21.8,
+        info: 'Visitors',
+        unit: '%'
+    },
+    {
+        count: 5.5,
+        info: 'Contractors',
+        unit: '%'
+    },
+    {
+        count: 9.3,
+        info: 'Security',
+        unit: '%'
+    },
+    {
+        count: 6.4,
+        info: 'Maintenance',
         unit: '%'
     }
 ])

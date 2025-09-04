@@ -45,7 +45,7 @@ onBeforeRouteUpdate(to => {
 // 路由信息
 const Link = reactive([
   {
-    name: '模块1',
+    name: 'Module1',
     key: 1,
     path: '/home/page1',
     icon: 'jianceyujing',
@@ -53,7 +53,7 @@ const Link = reactive([
     activeImg: img1Active
   },
   {
-    name: '模块2',
+    name: 'Module2',
     key: 2,
     path: '/home/page2',
     icon: 'rengongzhinengdanao',
@@ -61,7 +61,7 @@ const Link = reactive([
     activeImg: img2Active
   },
   {
-    name: '模块3',
+    name: 'Module3',
     key: 3,
     path: '/home/page3',
     icon: 'rengongzhinengdanao',

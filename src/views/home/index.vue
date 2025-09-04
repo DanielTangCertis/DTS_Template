@@ -3,7 +3,7 @@
         <Header v-if="playerIsReady" />
         <Player />
         <LeftBox v-show="showUI && (showLayerTree || showAnimation)">
-            <Lease_title :icon="'tucengshu'">主面板</Lease_title>
+            <Lease_title :icon="'tucengshu'">Menu</Lease_title>
             <layerTree v-show="showLayerTree" />
             <animation v-show="showAnimation" />
         </LeftBox>
