@@ -3,12 +3,12 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Box, ButtonBase, Typography, Fade, styled } from "@mui/material";
 
 // set default and active images
-let img1Default = "/assets/images/link/1级菜单_icon1_默认.png";
-let img1Active = "/assets/images/link/1级菜单_icon1_选中.png";
-let img3Default = "/assets/images/link/1级菜单_icon3_默认.png";
-let img3Active = "/assets/images/link/1级菜单_icon3_选中.png";
-let img5Default = "/assets/images/link/1级菜单_icon5_默认.png";
-let img5Active = "/assets/images/link/1级菜单_icon5_选中.png";
+let img1Default = "/assets/link/1级菜单_icon1_默认.png";
+let img1Active = "/assets/link/1级菜单_icon1_选中.png";
+let img3Default = "/assets/link/1级菜单_icon3_默认.png";
+let img3Active = "/assets/link/1级菜单_icon3_选中.png";
+let img5Default = "/assets/link/1级菜单_icon5_默认.png";
+let img5Active = "/assets/link/1级菜单_icon5_选中.png";
 
 const NavigationContainer = styled(Box)({
   position: "absolute",
@@ -33,25 +33,25 @@ const NavigationLinks = styled(Box)({
   alignItems: "center",
 });
 
-const NavigationButton = styled(ButtonBase)<{ active?: boolean }>(
-  ({ active }) => ({
-    width: "152px",
-    height: "38px",
-    margin: "0 27px",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
-    fontSize: "18px",
-    transition: "all 0.5s",
-    color: active ? "#ffffff" : "rgba(255, 255, 255, 0.8)",
-    letterSpacing: active ? "1px" : "0px",
-    "&:hover": {
-      color: "#ffffff",
-      transform: "scale(1.05)",
-    },
-  })
-);
+const NavigationButton = styled(ButtonBase, {
+  shouldForwardProp: (prop) => prop !== "active", // Prevent 'active' from reaching DOM
+})<{ active?: boolean }>(({ active }) => ({
+  width: "152px",
+  height: "38px",
+  margin: "0 27px",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  position: "relative",
+  fontSize: "18px",
+  transition: "all 0.5s",
+  color: active ? "#ffffff" : "rgba(255, 255, 255, 0.8)",
+  letterSpacing: active ? "1px" : "0px",
+  "&:hover": {
+    color: "#ffffff",
+    transform: "scale(1.05)",
+  },
+}));
 
 const NavigationImage = styled("img")({
   width: "130px",
@@ -85,7 +85,7 @@ interface NavigationItem {
 
 const navigationItems: NavigationItem[] = [
   {
-    name: "Module1",
+    name: "Page1",
     key: 1,
     path: "/home/page1", // Match the nested route structure
     icon: "icon1",
@@ -93,7 +93,7 @@ const navigationItems: NavigationItem[] = [
     activeImg: img1Active,
   },
   {
-    name: "Module2",
+    name: "Page2",
     key: 2,
     path: "/home/page2", // Match the nested route structure
     icon: "icon3",
@@ -101,7 +101,7 @@ const navigationItems: NavigationItem[] = [
     activeImg: img3Active,
   },
   {
-    name: "Module3",
+    name: "Page3",
     key: 3,
     path: "/home/page3", // Match the nested route structure
     icon: "icon5",

@@ -1,23 +1,22 @@
-import React from 'react';
-import { Box, Typography, Grid, styled } from '@mui/material';
-import { LeaseTitle, IconBox } from '../Layout';
-import Chart from '../Chart/Chart';
-import { option2, option3 } from './chartOptions';
+import React from "react";
+import { Box, Typography, Grid, styled } from "@mui/material";
+import { LeaseTitle, IconBox } from "../Layout";
+import { pieSampleData, barSampleData } from "./sampleData";
 
 export const LeftPanel: React.FC = () => {
   const trafficData = [
     {
-      icon: '/src/assets/panel/icon_gdp@2x.png',
-      label: 'YTD',
-      value: '23958.3',
-      suffix: 'k',
+      icon: "/src/assets/panel/icon_gdp@2x.png",
+      label: "YTD",
+      value: "23958.3",
+      suffix: "k",
     },
     // ... other data items
   ];
 
   return (
     <>
-      <Box sx={{ paddingRight: '50px' }}>
+      <Box sx={{ paddingRight: "50px" }}>
         <LeaseTitle>Expenditure</LeaseTitle>
         {/* Traffic data grid */}
         <Grid container spacing={2}>
@@ -27,13 +26,21 @@ export const LeftPanel: React.FC = () => {
                 <IconBox width={30} height={30}>
                   <img src={item.icon} alt={item.label} />
                 </IconBox>
-                <Box sx={{ marginLeft: '11px' }}>
-                  <Typography sx={{ fontSize: '14px', color: '#ffffff' }}>
+                <Box sx={{ marginLeft: "11px" }}>
+                  <Typography sx={{ fontSize: "14px", color: "#ffffff" }}>
                     {item.label}
                   </Typography>
-                  <Box sx={{ fontSize: '18px', color: '#00ffff', display: 'flex' }}>
+                  <Box
+                    sx={{ fontSize: "18px", color: "#00ffff", display: "flex" }}
+                  >
                     {item.value}
-                    <Box sx={{ fontSize: '16px', color: '#93c0ec', marginLeft: '12.7px' }}>
+                    <Box
+                      sx={{
+                        fontSize: "16px",
+                        color: "#93c0ec",
+                        marginLeft: "12.7px",
+                      }}
+                    >
                       {item.suffix}
                     </Box>
                   </Box>
@@ -42,17 +49,6 @@ export const LeftPanel: React.FC = () => {
             </Grid>
           ))}
         </Grid>
-      </Box>
-
-      {/* Charts */}
-      <Box sx={{ paddingRight: '50px' }}>
-        <LeaseTitle>Incidents Reported by Category (YTD)</LeaseTitle>
-        <Chart data={option2()} type="pie" height={400} width={400} />
-      </Box>
-
-      <Box sx={{ paddingRight: '50px' }}>
-        <LeaseTitle>Standard deviation of incidents reported by Category</LeaseTitle>
-        <Chart data={option3()} type="bar" height={250} width={350} />
       </Box>
     </>
   );
