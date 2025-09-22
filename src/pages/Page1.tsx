@@ -14,10 +14,10 @@ const Page1Container = styled(Box)({
 const Page1: React.FC = () => {
   return (
     <Page1Container>
-      <LayoutBox side="left" delay={300}>
+      <LayoutBox side="left" delay={0.3}>
         <LeftPanel />
       </LayoutBox>
-      <LayoutBox side="right" delay={300}>
+      <LayoutBox side="right" delay={0.3}>
         <RightPanel />
       </LayoutBox>
     </Page1Container>

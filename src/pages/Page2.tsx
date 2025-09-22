@@ -12,11 +12,11 @@ const Page2Container = styled(Box)({
 const Page2: React.FC = () => {
   return (
     <Page2Container>
-      <LayoutBox side="left" delay={300}>
-        {/* Add your Page 2 left content here */}
+      <LayoutBox side="left" delay={0.3}>
+        <Box>Content</Box>
       </LayoutBox>
-      <LayoutBox side="right" delay={300}>
-        {/* Add your Page 2 right content here */}
+      <LayoutBox side="right" delay={0.3}>
+        <Box>Content</Box>
       </LayoutBox>
     </Page2Container>
   );
