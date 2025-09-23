@@ -8,7 +8,7 @@ import LayerTree from "../components/LayerTree/LayerTree";
 import Animation from "../components/Animation/Animation";
 import Weather from "../components/Weather/Weather";
 import { LayoutBox } from "../components/Layout";
-import { LeaseTitle } from "../components/Layout";
+import { Title } from "../components/Layout";
 import { useHeader } from "../contexts/HeaderContext";
 import { useDigitalTwin } from "../contexts/DigitalTwinContext";
 
@@ -36,7 +36,7 @@ const HomePage: React.FC = () => {
       {headerState.showUI &&
         (headerState.showLayerTree || headerState.showAnimation) && (
           <LayoutBox side="left" delay={0.3}>
-            <LeaseTitle icon="tucengshu">Menu</LeaseTitle>
+            <Title icon="tucengshu">Menu</Title>
             {headerState.showLayerTree && <LayerTree />}
             {headerState.showAnimation && <Animation />}
           </LayoutBox>

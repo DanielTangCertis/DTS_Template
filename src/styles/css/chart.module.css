@@ -1,0 +1,4 @@
+.chart {
+  flex-grow: 1; /* This will make all children grow equally */
+  /* If you want different children to take more space, you can set a higher number, e.g., flex-grow: 2 */
+}

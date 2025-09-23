@@ -3,8 +3,9 @@ import { Box, Typography, List, ListItem, styled } from "@mui/material";
 import { Person as PersonIcon } from "@mui/icons-material";
 import { ResponsiveLine } from "@nivo/line";
 import { ResponsiveBar } from "@nivo/bar";
-import { LayoutBox, LeaseTitle } from "../Layout";
-import { lineSampleData, barSampleData2 } from "./sampleData";
+import { LayoutBox, Title } from "../Layout";
+import { lineSampleData, barSampleData2 } from "@/sampleData";
+import Chart from "../Chart";
 
 const ContentContainer = styled(Box)({
   width: "350px",
@@ -69,13 +70,15 @@ export const RightPanel: React.FC = () => {
       <ContentContainer>
         {/* Crowd Flow Chart */}
         <Box sx={{ marginBottom: "30px" }}>
-          <LeaseTitle>Crowd Flow</LeaseTitle>
-          <ChartContainer></ChartContainer>
+          <Title>Crowd Flow</Title>
+          <ChartContainer>
+            <Chart data={crowdFlowData} type="line" />
+          </ChartContainer>
         </Box>
 
         {/* Personnel Overview */}
         <Box sx={{ marginBottom: "30px" }}>
-          <LeaseTitle>Personnel Overview</LeaseTitle>
+          <Title>Personnel Overview</Title>
           <PersonnelContainer>
             <List sx={{ padding: 0 }}>
               {personnelData.map((item, index) => (
@@ -108,9 +111,15 @@ export const RightPanel: React.FC = () => {
             </List>
           </PersonnelContainer>
         </Box>
+
+        {/* Category Bar Chart */}
+        <Box sx={{ marginBottom: "30px" }}>
+          <Title>Add Label Here</Title>
+          <ChartContainer sx={{ height: "300px" }}>
+            <Chart data={categoryData} type="bar" />
+          </ChartContainer>
+        </Box>
       </ContentContainer>
     </LayoutBox>
   );
 };
-
-export default RightPanel;

@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Box, styled } from "@mui/material";
 import { LayoutBox } from "../components/Layout";
 import { ResponsiveLine } from "@nivo/line";
-import { lineSampleData2 } from "@/components/Page1/sampleData";
+import { lineSampleData2 } from "@/sampleData";
 const Page2Container = styled(Box)({
   width: "100%",
   height: "100%",
@@ -11,11 +11,21 @@ const Page2Container = styled(Box)({
 });
 
 const Page2: React.FC = () => {
+  const [linedata, setlinedata] = useState<any[]>([]);
+
+  const memoizedLineData = useCallback(() => {
+    return lineSampleData2();
+  }, []); // Empty dependency array means this function is created only once
+
+  useEffect(() => {
+    setlinedata(memoizedLineData());
+  }, [memoizedLineData]); // Now, the useEffect hook only runs when memoizedLineData changes
+
   return (
     <Page2Container>
       <LayoutBox side="left" delay={0.3}>
         <ResponsiveLine /* or Line for fixed dimensions */
-          data={lineSampleData2()}
+          data={linedata}
           margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
           yScale={{
             type: "linear",

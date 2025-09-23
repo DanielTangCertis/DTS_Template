@@ -1,12 +1,13 @@
 import React from "react";
 import { Box, Typography, Grid, styled } from "@mui/material";
-import { LeaseTitle, IconBox } from "../Layout";
-import { pieSampleData, barSampleData } from "./sampleData";
+import { Title, IconBox } from "../Layout";
+import Chart from "../Chart/Chart";
+import { pieSampleData, barSampleData } from "@/sampleData";
 
 export const LeftPanel: React.FC = () => {
   const trafficData = [
     {
-      icon: "/src/assets/panel/icon_gdp@2x.png",
+      icon: "/assets/panel/icon_gdp@2x.png",
       label: "YTD",
       value: "23958.3",
       suffix: "k",
@@ -17,7 +18,7 @@ export const LeftPanel: React.FC = () => {
   return (
     <>
       <Box sx={{ paddingRight: "50px" }}>
-        <LeaseTitle>Expenditure</LeaseTitle>
+        <Title>Expenditure</Title>
         {/* Traffic data grid */}
         <Grid container spacing={2}>
           {trafficData.map((item, index) => (
@@ -49,6 +50,19 @@ export const LeftPanel: React.FC = () => {
             </Grid>
           ))}
         </Grid>
+      </Box>
+
+      {/* Charts */}
+      <Box sx={{ paddingRight: "50px" }}>
+        <Title>Incidents Reported by Category (YTD)</Title>
+        {/* <Chart data={pieSampleData()} type="pie" /> */}
+        <Chart data={pieSampleData()} type="pie" height={400} width={400} />
+      </Box>
+
+      <Box sx={{ paddingRight: "50px" }}>
+        <Title>Standard deviation of incidents reported by Category</Title>
+        <Chart data={barSampleData()} type="bar" />
+        {/* <Chart data={barSampleData()} type="bar" height={250} width={350} /> */}
       </Box>
     </>
   );
