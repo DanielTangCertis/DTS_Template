@@ -1,6 +1,3 @@
-// src/types/digitalTwin.types.ts
-
-// Player Configuration Types
 export interface DigitalTwinPlayer {
   init: (config: PlayerConfig) => void;
   destroy: () => void;
@@ -16,9 +13,9 @@ export interface PlayerConfig {
 
 // API Response Types (from Digital Twin SDK)
 export interface LayerTreeApiItem {
-  iD: string;           // Note: API uses 'iD' not 'id'
+  iD: string; // Note: API uses 'iD' not 'id'
   name: string;
-  visiblity: boolean;   // Note: API uses 'visiblity' not 'visibility'
+  visiblity: boolean; // Note: API uses 'visiblity' not 'visibility'
   index: number;
   parentIndex: number;
   color?: string;
@@ -29,6 +26,19 @@ export interface LayerTreeApiItem {
 export interface AnimationListItem {
   id: string | number;
   name: string;
+}
+
+// Add to digitalTwin.types.ts
+export interface LayerTreeResponse {
+  infotree: LayerTreeApiItem[];
+}
+
+export interface AnimationListResponse {
+  data: AnimationListItem[];
+}
+
+export interface AnimationImageResponse {
+  image: string;
 }
 
 // Digital Twin API Interface
@@ -45,13 +55,19 @@ export interface FDApi {
     stopAnimation: () => Promise<void>;
   };
   weather: {
-    setDateTime: (year?: number | null, month?: number | null, day?: number | null, hour?: number, minute?: number) => Promise<void>;
+    setDateTime: (
+      year?: number | null,
+      month?: number | null,
+      day?: number | null,
+      hour?: number,
+      minute?: number
+    ) => Promise<void>;
     setDarkMode: (enabled: boolean) => Promise<void>;
     disableRainSnow: () => Promise<void>;
     setCloudDensity: (density: number) => Promise<void>;
     setSunIntensity: (intensity: number) => Promise<void>;
-    setRainParam: (params: (number|string)[]) => Promise<void>;
-    setSnowParam: (params: (number|string)[]) => Promise<void>;
+    setRainParam: (params: (number | string)[]) => Promise<void>;
+    setSnowParam: (params: (number | string)[]) => Promise<void>;
   };
   reset: (flags: number) => Promise<void>;
   settings: {
@@ -59,13 +75,21 @@ export interface FDApi {
   };
 }
 
-// Global Window Interface Extensions  
+// Global Window Interface Extensions
 declare global {
   interface Window {
     fdapi: FDApi;
-    DigitalTwinPlayer: new (serverUrl: string, options: any) => {
-      getAPI?(): FDApi;  // Optional method for React-compliant approach
-      destroy?(): void;
+    DigitalTwinPlayer: {
+      new (
+        serverUrl: string,
+        options: {
+          domId: string;
+          apiOptions: {
+            onReady: () => void | Promise<void>;
+            onEvent: (event: any) => void;
+          };
+        }
+      ): DigitalTwinPlayer;
     };
     HostConfig: {
       Player: string;

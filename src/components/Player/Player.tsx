@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Box, styled } from "@mui/material";
-import { useDigitalTwin } from "../../contexts/DigitalTwinContext";
+import { useDigitalTwin } from "@/contexts/DigitalTwinContext";
+import { PlayerConfig } from "@/types/digitalTwin.types";
 
 const PlayerContainer = styled(Box)({
   width: "100%",
@@ -111,16 +112,20 @@ const Player: React.FC = () => {
       // Handle specific events as needed
     };
 
-    console.log("Creating Digital Twin Player (Vue approach)...");
+    console.log("Creating Digital Twin Player...");
+    const playerConfig: PlayerConfig = {
+      domId: "player",
+      apiOptions: {
+        onReady: onReady,
+        onEvent: onEvent,
+      },
+    };
 
     try {
-      new (window as any).DigitalTwinPlayer((window as any).HostConfig.Player, {
-        domId: "player",
-        apiOptions: {
-          onReady: onReady, // React equivalent of _onReady
-          onEvent: onEvent, // React equivalent of _onEvent
-        },
-      });
+      new (window as any).DigitalTwinPlayer(
+        (window as any).HostConfig.Player,
+        playerConfig
+      );
 
       console.log("Digital Twin Player created successfully");
     } catch (error) {

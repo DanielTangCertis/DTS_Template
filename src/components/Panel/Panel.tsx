@@ -1,6 +1,11 @@
 import React from "react";
 import { Box } from "@mui/material";
 import { Title } from "../Layout";
+import {
+  PanelErrorBoundary,
+  ChartErrorBoundary,
+  CustomContentErrorBoundary,
+} from "../ErrorBoundary/ErrorBoundary";
 import { NivoChart } from "../NivoChart/NivoChart";
 import {
   CustomContent,
@@ -38,33 +43,37 @@ export const Panel: React.FC<PanelProps> = ({
   const customWidthStyle = width ? { width } : {};
 
   const renderChart = (chartConfig: ChartConfig) => (
-    <Box key={chartConfig.id} className={styles.chartSection}>
-      <Title>{chartConfig.title}</Title>
-      <Box className={styles.chartContainer}>
-        <NivoChart
-          data={chartConfig.data}
-          type={chartConfig.type}
-          width={chartConfig.width} // Pass optional width
-          height={chartConfig.height} // Pass optional height
-          theme={chartConfig.theme || "dark"}
-          interactive={chartConfig.interactive !== false}
-        />
+    <ChartErrorBoundary key={chartConfig.id} chartTitle={chartConfig.title}>
+      <Box key={chartConfig.id} className={styles.chartSection}>
+        <Title>{chartConfig.title}</Title>
+        <Box className={styles.chartContainer}>
+          <NivoChart
+            data={chartConfig.data}
+            type={chartConfig.type}
+            width={chartConfig.width} // Pass optional width
+            height={chartConfig.height} // Pass optional height
+            theme={chartConfig.theme || "dark"}
+            interactive={chartConfig.interactive !== false}
+          />
+        </Box>
       </Box>
-    </Box>
+    </ChartErrorBoundary>
   );
 
   return (
-    <Box
-      className={`${styles.panelContainer} ${panelClass}`}
-      style={customWidthStyle}
-    >
-      {/* Render custom content first */}
-      {customContent.map((content) => (
-        <CustomContent key={content.id} config={content} />
-      ))}
-
-      {/* Render charts */}
-      {charts.map((chartConfig) => renderChart(chartConfig))}
-    </Box>
+    <PanelErrorBoundary>
+      <Box 
+        className={`${styles.panelContainer} ${panelClass}`}
+        style={customWidthStyle}
+      >
+        {customContent.map((content) => (
+          <CustomContentErrorBoundary key={content.id}>
+            <CustomContent config={content} />
+          </CustomContentErrorBoundary>
+        ))}
+        
+        {charts.map((chartConfig) => renderChart(chartConfig))}
+      </Box>
+    </PanelErrorBoundary>
   );
 };

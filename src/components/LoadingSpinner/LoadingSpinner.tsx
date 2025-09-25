@@ -40,7 +40,7 @@ interface LoadingSpinnerProps {
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  message = 'Loading...', 
+  message = 'Connecting To Digital Twin...', 
   size = 60 
 }) => {
   return (

@@ -9,9 +9,9 @@ import {
   styled,
   Grid,
 } from "@mui/material";
-import { useDigitalTwin } from "@/contexts/DigitalTwinContext";
-import { useHeader } from "@/contexts/HeaderContext";
-import { useDigitalTwinApi } from "@/hooks/useDigitalTwinApi";
+import { useDigitalTwin } from "../../contexts/DigitalTwinContext";
+import { useHeader } from "../../contexts/HeaderContext";
+import { digitalTwinService } from "../../services/DigitalTwinService";
 
 const AnimationContainer = styled(Box)({
   position: "absolute",
@@ -65,27 +65,46 @@ interface AnimationItem {
   img: string;
 }
 
-export const Animation: React.FC = () => {
+const Animation: React.FC = () => {
   const { state: digitalTwinState } = useDigitalTwin();
   const { state: headerState } = useHeader();
-  
-  // Use the consolidated hook instead of direct API calls
-  const { playAnimation, stopAnimation } = useDigitalTwinApi();
 
   useEffect(() => {
     // Stop animation when component is hidden
     if (!headerState.showAnimation) {
-      stopAnimation().catch(console.error);
+      digitalTwinService.stopAnimation().catch(console.error);
     }
-  }, [headerState.showAnimation, stopAnimation]);
+  }, [headerState.showAnimation]);
 
   const handleAnimationClick = async (item: AnimationItem) => {
     try {
-      await playAnimation(item.id);
+      const success = await digitalTwinService.playAnimation(item.id);
+      if (!success) {
+        console.warn('Failed to play animation:', item.name);
+      }
     } catch (error) {
       console.error("Error playing animation:", error);
     }
   };
+
+  // Graceful handling of missing animation data
+  if (!digitalTwinState.animationList || digitalTwinState.animationList.length === 0) {
+    return (
+      <AnimationContainer>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          height: '100%',
+          color: 'rgba(255, 255, 255, 0.6)'
+        }}>
+          <Typography variant="body2">
+            No animations available
+          </Typography>
+        </Box>
+      </AnimationContainer>
+    );
+  }
 
   return (
     <Fade in={true} timeout={1000} style={{ transitionDelay: "300ms" }}>
@@ -94,7 +113,10 @@ export const Animation: React.FC = () => {
           {digitalTwinState.animationList.map((item) => (
             <Grid size={6} key={item.id}>
               <AnimationCard onClick={() => handleAnimationClick(item)}>
-                <AnimationImage image={item.img} title={item.name} />
+                <AnimationImage 
+                  image={item.img || '/placeholder-animation.png'} 
+                  title={item.name} 
+                />
                 <CardContent sx={{ p: 1, "&:last-child": { pb: 1 } }}>
                   <AnimationText variant="body2">{item.name}</AnimationText>
                 </CardContent>
@@ -106,3 +128,5 @@ export const Animation: React.FC = () => {
     </Fade>
   );
 };
+
+export default Animation;
