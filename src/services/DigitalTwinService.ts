@@ -3,6 +3,7 @@ import {
   LayerTreeResponse,
   AnimationListResponse,
   AnimationImageResponse,
+  PlayerConfig
 } from "../types/digitalTwin.types";
 
 export enum ConnectionStatus {
@@ -70,10 +71,10 @@ class DigitalTwinService {
         );
       }
 
-      // ADD THIS LOGIC FROM YOUR PLAYER.tsx:
       console.log("Creating Digital Twin Player...");
-      const playerConfig = {
+      const playerConfig:PlayerConfig = {
         domId: "player",
+        iid: (window as any).HostConfig.InstanceId || "",
         apiOptions: {
           onReady: this.handlePlayerReady.bind(this),
           onEvent: this.handlePlayerEvent.bind(this),
@@ -110,7 +111,7 @@ class DigitalTwinService {
       return false;
     }
   }
-  
+
   disconnect(): void {
     this.clearReconnectTimer();
 

@@ -5,6 +5,7 @@ export interface DigitalTwinPlayer {
 
 export interface PlayerConfig {
   domId: string;
+  iid: string;
   apiOptions: {
     onReady: () => void | Promise<void>;
     onEvent: (event: any) => void;

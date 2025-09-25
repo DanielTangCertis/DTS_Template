@@ -2,7 +2,6 @@ import React from "react";
 import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { Box, styled } from "@mui/material";
-import Player from "../components/Player/Player";
 import { LayoutBox } from "../components/Layout";
 import { Title } from "../components/Layout";
 import { useHeader } from "../contexts/HeaderContext";

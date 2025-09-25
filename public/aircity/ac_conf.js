@@ -6,6 +6,7 @@
  */
 var HostConfig = {
   Player: "192.168.1.19:8080",
+  InstanceId: "1798948163867",
   Path: "C:/Users/CTS-ENG/AppData/Roaming/DTS Cloud/6.1/SDK",
   UseHttps: false,
 };
