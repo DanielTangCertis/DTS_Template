@@ -77,7 +77,7 @@ interface HeaderProps {
   onWeatherToggle?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({
+export const Header: React.FC<HeaderProps> = ({
   onLayerTreeToggle,
   onAnimationToggle,
   onWeatherToggle,
@@ -226,5 +226,3 @@ const Header: React.FC<HeaderProps> = ({
     </>
   );
 };
-
-export default Header;

@@ -3,7 +3,7 @@ import { Box, Fade, styled } from "@mui/material";
 import { SimpleTreeView, TreeItem } from "@mui/x-tree-view";
 import { ExpandMore, ChevronRight } from "@mui/icons-material";
 import { useDigitalTwin } from "@/contexts/DigitalTwinContext";
-import { useDigitalTwinApi } from '@/hooks/useDigitalTwinApi';
+import { useDigitalTwinApi } from "@/hooks/useDigitalTwinApi";
 
 const TreeContainer = styled(Box)({
   position: "absolute",
@@ -127,7 +127,7 @@ const LayerTree: React.FC = () => {
   const { state } = useDigitalTwin();
   const [expanded, setExpanded] = useState<string[]>(["0"]);
   const [selected, setSelected] = useState<string[]>([]);
-  
+
   // Use the consolidated hook instead of direct API calls
   const { toggleLayerVisibility } = useDigitalTwinApi();
 

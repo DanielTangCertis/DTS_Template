@@ -65,7 +65,7 @@ interface AnimationItem {
   img: string;
 }
 
-const Animation: React.FC = () => {
+export const Animation: React.FC = () => {
   const { state: digitalTwinState } = useDigitalTwin();
   const { state: headerState } = useHeader();
   
@@ -106,5 +106,3 @@ const Animation: React.FC = () => {
     </Fade>
   );
 };
-
-export default Animation;

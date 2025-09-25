@@ -134,7 +134,7 @@ const ResetButton = styled(Button)({
   },
 });
 
-interface WeatherItem {
+export interface WeatherItem {
   name: string;
   icon: string;
   options: WeatherOptions;
@@ -177,12 +177,13 @@ const weatherItems: WeatherItem[] = [
   },
 ];
 
-const Weather: React.FC = () => {
+export const Weather: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(8 * 60 * 60 + 53 * 60); // 8:53 AM in seconds
   const [isDark, setIsDark] = useState(false);
-  
+
   // Use the consolidated hook methods instead of duplicating logic
-  const { resetPlayer, setDarkMode, setWeatherTime, updateWeather } = useDigitalTwinApi();
+  const { resetPlayer, setDarkMode, setWeatherTime, updateWeather } =
+    useDigitalTwinApi();
 
   const sliderFormat = useCallback((time: number): string => {
     const [hour, minute] = getHourMinute(time);
@@ -238,13 +239,16 @@ const Weather: React.FC = () => {
     }
   }, [resetPlayer]);
 
-  const handleWeatherChange = useCallback(async (options: WeatherOptions) => {
-    try {
-      await updateWeather(options);
-    } catch (error) {
-      console.error("Error changing weather:", error);
-    }
-  }, [updateWeather]);
+  const handleWeatherChange = useCallback(
+    async (options: WeatherOptions) => {
+      try {
+        await updateWeather(options);
+      } catch (error) {
+        console.error("Error changing weather:", error);
+      }
+    },
+    [updateWeather]
+  );
 
   return (
     <Fade in={true} timeout={1000} style={{ transitionDelay: "300ms" }}>
@@ -322,5 +326,3 @@ const Weather: React.FC = () => {
     </Fade>
   );
 };
-
-export default Weather;

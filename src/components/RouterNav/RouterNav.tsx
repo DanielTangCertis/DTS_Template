@@ -74,7 +74,7 @@ const NavigationText = styled(Typography)({
   alignItems: "center",
 });
 
-interface NavigationItem {
+export interface NavigationItem {
   name: string;
   key: number;
   path: string;
@@ -83,7 +83,7 @@ interface NavigationItem {
   activeImg: string;
 }
 
-const navigationItems: NavigationItem[] = [
+export const navigationItems: NavigationItem[] = [
   {
     name: "Page1",
     key: 1,
@@ -110,7 +110,7 @@ const navigationItems: NavigationItem[] = [
   },
 ];
 
-const RouterNav: React.FC = () => {
+export const RouterNav: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [currentPath, setCurrentPath] = useState("");
@@ -169,5 +169,3 @@ const RouterNav: React.FC = () => {
     </Fade>
   );
 };
-
-export default RouterNav;

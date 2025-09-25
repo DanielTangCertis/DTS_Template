@@ -28,7 +28,7 @@ export interface PanelProps {
   width?: string;
 }
 
-const Panel: React.FC<PanelProps> = ({
+export const Panel: React.FC<PanelProps> = ({
   side,
   charts = [],
   customContent = [],
@@ -68,5 +68,3 @@ const Panel: React.FC<PanelProps> = ({
     </Box>
   );
 };
-
-export default Panel;

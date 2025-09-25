@@ -1,12 +1,12 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import { Box, styled } from "@mui/material";
-import Header from "../components/Header/Header";
+import { Header } from "../components/Header/Header";
 import Player from "../components/Player/Player";
-import RouterNav from "../components/RouterNav/RouterNav";
+import { RouterNav } from "../components/RouterNav/RouterNav";
 import LayerTree from "../components/LayerTree/LayerTree";
-import Animation from "../components/Animation/Animation";
-import Weather from "../components/Weather/Weather";
+import { Animation } from "../components/Animation/Animation";
+import { Weather } from "../components/Weather/Weather";
 import { LayoutBox } from "../components/Layout";
 import { Title } from "../components/Layout";
 import { useHeader } from "../contexts/HeaderContext";

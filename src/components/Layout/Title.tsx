@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Typography, styled } from "@mui/material";
-import { IconWrapper } from "../Icons";
+import { IconWrapper } from "../IconWrapper/IconWrapper";
 
 const TitleContainer = styled(Box)({
   position: "relative",

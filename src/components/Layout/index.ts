@@ -1,3 +1,3 @@
 export { LayoutBox } from "./LayoutBox";
 export { IconBox } from "./IconBox";
-export { Title } from "./Title";
+export {Title} from "./Title";
