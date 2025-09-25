@@ -41,9 +41,8 @@ interface ScatterPlotData {
 
 interface ChartProps {
   data: LineChartData[] | BarChartData[] | PieChartData[] | ScatterPlotData[];
-  width?: number;
-  height?: number;
-  top?: number;
+  width?: number; // Optional - if provided, uses fixed width
+  height?: number; // Optional - if provided, uses fixed height
   type?: "line" | "bar" | "pie" | "scatter";
   theme?: "light" | "dark";
   interactive?: boolean;
@@ -96,18 +95,14 @@ const isScatterData = (data: any): data is ScatterPlotData[] => {
   );
 };
 
-const Chart: React.FC<ChartProps> = ({
+export const NivoChart: React.FC<ChartProps> = ({
   data,
-  width = 400,
-  height = 200,
-  top = 0,
+  width,
+  height,
   type = "line",
   theme = "dark",
   interactive = true,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [containerSize, setContainerSize] = useState({ width, height });
-
   // Validate data structure at runtime
   useEffect(() => {
     switch (type) {
@@ -145,23 +140,6 @@ const Chart: React.FC<ChartProps> = ({
         break;
     }
   }, [data, type]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        setContainerSize({
-          width: rect.width || width,
-          height: rect.height || height,
-        });
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    handleResize();
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, [width, height]);
 
   const commonTheme = {
     background: theme === "dark" ? "#1a1a1a" : "#ffffff",
@@ -528,18 +506,15 @@ const Chart: React.FC<ChartProps> = ({
 
   return (
     <Box
-      ref={containerRef}
       sx={{
-        width: width || "100%",
-        height: height,
-        marginTop: `${top}px`,
+        width: width ? `${width}px` : "100%",
+        height: height ? `${height}px` : "100%",
         borderRadius: "8px",
         overflow: "hidden",
+        position: "relative", // Helps with Nivo positioning
       }}
     >
-      {renderChart()}
+      {renderChart()} {/* Nivo Responsive components handle their own sizing */}
     </Box>
   );
 };
-
-export default Chart;

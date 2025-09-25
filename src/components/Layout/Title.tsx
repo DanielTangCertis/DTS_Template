@@ -13,7 +13,6 @@ const TitleContainer = styled(Box)({
   width: "350px",
   height: "50px",
   fontSize: "16px",
-  marginBottom: "5px",
   overflow: "hidden",
   backgroundImage: 'url("./tiltle_s@2x.png")',
   backgroundRepeat: "no-repeat",

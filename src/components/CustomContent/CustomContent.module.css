@@ -1,0 +1,151 @@
+/* Custom Content Base Styles */
+.customContentSection {
+  flex: 0 0 auto;
+  max-height: 25vh; /* Reduced from 30vh to leave more space for charts */
+  overflow: hidden; /* Prevent scrolling as requested */
+  margin-bottom: 1.5rem; /* Use rem instead of fixed px */
+
+  /* Your existing styling */
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 1.25rem; /* 20px converted to rem */
+  max-width: min-content;
+  box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.25); /* 8px 32px converted to rem */
+  padding: 1vw; /* Slightly larger for better mobile experience */
+}
+
+/* Traffic Styles - Responsive */
+.trafficGrid {
+  margin-bottom: 1rem;
+}
+
+.trafficItem {
+  display: flex;
+  align-items: center;
+}
+
+.trafficContent {
+  margin-left: 0.7rem;
+  flex-grow: 1;
+}
+
+.trafficLabel {
+  font-size: clamp(0.75rem, 2vw, 0.875rem); /* 12px - 14px responsive */
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.trafficValue {
+  font-size: clamp(1rem, 3vw, 1.125rem); /* 16px - 18px responsive */
+  color: #00ffff;
+  display: flex;
+  align-items: baseline;
+  margin: 0;
+  font-weight: 600;
+}
+
+.trafficSuffix {
+  font-size: clamp(0.875rem, 2.5vw, 1rem); /* 14px - 16px responsive */
+  color: #93c0ec;
+  margin-left: 0.5rem;
+}
+
+/* Personnel Styles - Responsive */
+.personnelContainer {
+  flex-grow: 1; /* Takes remaining space after title */
+  display: flex;
+  flex-direction: column;
+}
+
+.personnelList {
+  flex: 1; /* Takes all available space */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Distributes items evenly */
+}
+
+.personnelItem {
+  flex: 1; /* Each item gets equal space */
+  min-height: clamp(1.5rem, 3vh, 2.5rem); /* Responsive sizing */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 0.5rem 0.3rem;
+}
+
+.personnelInfo {
+  display: flex;
+  align-items: center;
+}
+
+.personnelIcon {
+  margin-right: 0.3rem;
+  font-size: clamp(0.875rem, 2vw, 1rem); /* 14px - 16px responsive */
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.personnelLabel {
+  font-size: clamp(0.75rem, 2vw, 0.875rem); /* 12px - 14px responsive */
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.personnelValue {
+  font-size: clamp(1rem, 3vw, 1.125rem); /* 16px - 18px responsive */
+  font-family: "PangMenZhengDao", Arial, sans-serif;
+  color: #00ffff;
+  font-weight: bold;
+  margin: 0;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.personnelUnit {
+  color: #93c0ec;
+  font-size: clamp(0.75rem, 2vw, 0.875rem); /* 12px - 14px responsive */
+  margin-left: 0.125rem;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  .customContentSection {
+    padding: 3vw;
+    margin-bottom: 1rem;
+    max-height: 20vh; /* Even less space on mobile */
+  }
+
+  .trafficItem {
+    margin-bottom: 0.5rem;
+  }
+
+  .personnelItem {
+    padding: 0.4rem 0.2rem;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 480px) {
+  .customContentSection {
+    padding: 4vw;
+    max-height: 18vh;
+  }
+
+  .trafficLabel,
+  .personnelLabel {
+    font-size: 0.7rem;
+  }
+
+  .trafficValue,
+  .personnelValue {
+    font-size: 0.9rem;
+  }
+}

@@ -25,16 +25,15 @@ const Player: React.FC = () => {
 
     initializationRef.current = true;
 
-    // React equivalent of Vue's _onReady function
     const onReady = async () => {
       try {
         console.log("Digital Twin Player Ready - Starting initialization...");
 
-        // Reset the 3D scene (matching Vue digitalTwinUtils)
+        // Reset the 3D scene
         console.log("Resetting 3D scene...");
         await (window as any).fdapi.reset(1 | 2 | 4); // camera + weather + layers
 
-        // Load layer tree data (matching Vue digitalTwinUtils)
+        // Load layer tree data
         console.log("Loading layer tree...");
         const response = await (window as any).fdapi.infoTree.get();
         if (response?.infotree) {
@@ -54,7 +53,6 @@ const Player: React.FC = () => {
           console.log("Layer tree loaded:", layerTree.length, "items");
         }
 
-        // Load animation list (matching Vue digitalTwinUtils)
         console.log("Loading animations...");
         const { data } = await (window as any).fdapi.camera.getAnimationList();
 
@@ -97,7 +95,7 @@ const Player: React.FC = () => {
           );
         }
 
-        // Mark player as ready (matching Vue behavior)
+        // Mark player as ready
         dispatch({ type: "SET_READY_STATE", payload: true });
 
         console.log("Digital Twin initialization complete");
@@ -108,17 +106,14 @@ const Player: React.FC = () => {
       }
     };
 
-    // React equivalent of Vue's _onEvent function
     const onEvent = (eventData?: any) => {
       console.log("Digital Twin Event:", eventData);
       // Handle specific events as needed
     };
 
-    // React equivalent of Vue's onMounted - direct player creation
     console.log("Creating Digital Twin Player (Vue approach)...");
 
     try {
-      // Exactly like Vue version - direct global usage
       new (window as any).DigitalTwinPlayer((window as any).HostConfig.Player, {
         domId: "player",
         apiOptions: {
