@@ -1,151 +1,162 @@
+import { useCallback } from "react";
+
+// src/services/DigitalTwinService.ts
 import {
   FDApi,
   LayerTreeResponse,
   AnimationListResponse,
   AnimationImageResponse,
-  PlayerConfig
+  PlayerConfig,
 } from "../types/digitalTwin.types";
 
+// ✨ UPDATED: Extended enum with new states while maintaining compatibility
 export enum ConnectionStatus {
-  DISCONNECTED = "disconnected",
-  CONNECTING = "connecting",
-  CONNECTED = "connected",
-  ERROR = "error",
-  RECONNECTING = "reconnecting",
+  DISCONNECTED = "disconnected", // ← Existing
+  INITIALIZING = "initializing", // ← NEW
+  CONNECTING = "connecting", // ← Existing
+  CONNECTED = "connected", // ← Existing
+  ERROR = "error", // ← Existing
+  TIMEOUT = "timeout", // ← NEW
+  RECONNECTING = "reconnecting", // ← Existing
 }
 
+// ✨ UPDATED: Extended interface with optional new property for compatibility
 export interface ConnectionState {
   status: ConnectionStatus;
   error: string | null;
   retryCount: number;
   lastConnected: Date | null;
+  initStartTime?: Date; // ← NEW (optional for backward compatibility)
 }
 
 type ConnectionListener = (state: ConnectionState) => void;
 type DataListener = (type: "layerTree" | "animations", data: any) => void;
 
+// ✨ UNIFIED: Single service handling both ac.min.js monitoring AND React service
 class DigitalTwinService {
-  private player: any = null;
-  private connectionState: ConnectionState = {
+  private _connectionState: ConnectionState = {
     status: ConnectionStatus.DISCONNECTED,
     error: null,
     retryCount: 0,
     lastConnected: null,
+    initStartTime: new Date(),
   };
 
   private connectionListeners: Set<ConnectionListener> = new Set();
   private dataListeners: Set<DataListener> = new Set();
   private reconnectTimer: NodeJS.Timeout | null = null;
+  // ✨ NEW: Timer for initialization timeout
+  private initTimer: NodeJS.Timeout | null = null;
+  // ✨ NEW: Console monitoring system
+  private originalConsoleLog = console.log;
   private maxRetries = 5;
   private retryDelay = 3000;
+  private initTimeout = 10000; // 10 seconds
 
-  // Public API
+  // ✨ PUBLIC GETTERS: These must be inside the class
   get status() {
-    return this.connectionState.status;
+    return this._connectionState.status;
   }
 
   get isConnected() {
-    return this.connectionState.status === ConnectionStatus.CONNECTED;
+    return this._connectionState.status === ConnectionStatus.CONNECTED;
   }
 
   get api(): FDApi | null {
-    return this.isConnected ? (window as any).fdapi : null;
+    return this.isConnected ? window.fdapi : null;
   }
 
-  // Connection Management
+  get connectionState() {
+    return { ...this._connectionState };
+  }
+
+  // ✨ BACKWARD COMPATIBLE: Keep both connect() and initialize() methods
   async connect(retryOnFailure = true): Promise<boolean> {
-    if (this.connectionState.status === ConnectionStatus.CONNECTING) {
+    return this.initialize();
+  }
+
+  // ✨ SIMPLE: Initialize by creating the DigitalTwinPlayer (replaces old Player.tsx)
+  async initialize(): Promise<boolean> {
+    
+    // Already connected
+    if (this._connectionState.status === ConnectionStatus.CONNECTED) {
+      console.log("Already connected");
+      return true;
+    }
+    // Already attempting connection
+    if (
+      this._connectionState.status === ConnectionStatus.INITIALIZING ||
+      this._connectionState.status === ConnectionStatus.CONNECTING
+    ) {
       return false;
     }
 
     this.updateConnectionState({
-      status: ConnectionStatus.CONNECTING,
+      status: ConnectionStatus.INITIALIZING,
       error: null,
+      initStartTime: new Date(),
     });
 
     try {
-      // Check if HostConfig exists
+      // Check if required components are available
       if (!window.HostConfig?.Player) {
         throw new Error(
           "HostConfig.Player not found. Make sure ac_conf.js is loaded."
         );
       }
 
+      if (!window.DigitalTwinPlayer) {
+        throw new Error(
+          "DigitalTwinPlayer class not found. Make sure ac.min.js is loaded."
+        );
+      }
+
+      // ✨ START MONITORING: Set up console monitoring before creating player
+      this.startConsoleMonitoring();
+
+      // ✨ CREATE PLAYER: This is what Player.tsx used to do
       console.log("Creating Digital Twin Player...");
-      const playerConfig:PlayerConfig = {
+      const playerConfig: PlayerConfig = {
         domId: "player",
-        iid: (window as any).HostConfig.InstanceId || "",
+        iid: window.HostConfig.InstanceId || "",
         apiOptions: {
           onReady: this.handlePlayerReady.bind(this),
           onEvent: this.handlePlayerEvent.bind(this),
         },
       };
 
-      this.player = new (window as any).DigitalTwinPlayer(
-        window.HostConfig.Player,
-        playerConfig
-      );
+      new window.DigitalTwinPlayer(window.HostConfig.Player, playerConfig);
 
       console.log("Digital Twin Player created successfully");
 
-      // Wait for connection with timeout
-      await this.waitForConnection(10000);
+      // Set timeout in case connection fails
+      this.initTimer = setTimeout(() => {
+        if (this._connectionState.status !== ConnectionStatus.CONNECTED) {
+          this.handleInitializationTimeout();
+        }
+      }, this.initTimeout);
 
       return true;
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown connection error";
-
-      this.updateConnectionState({
-        status: ConnectionStatus.ERROR,
-        error: errorMessage,
-        retryCount: this.connectionState.retryCount + 1,
-      });
-
-      console.error("Digital Twin connection failed:", error);
-
-      if (retryOnFailure && this.connectionState.retryCount < this.maxRetries) {
-        this.scheduleReconnect();
-      }
-
+      this.handleInitializationError(error);
       return false;
     }
   }
 
-  disconnect(): void {
-    this.clearReconnectTimer();
-
-    if (this.player?.destroy) {
-      try {
-        this.player.destroy();
-      } catch (error) {
-        console.warn("Error destroying player:", error);
-      }
-    }
-
-    this.player = null;
-    this.updateConnectionState({
-      status: ConnectionStatus.DISCONNECTED,
-      error: null,
-      retryCount: 0,
-    });
-  }
-
-  async reconnect(): Promise<boolean> {
-    this.disconnect();
-    return this.connect(true);
-  }
-
-  // Event Handlers
+  // ✨ SIMPLE: Handle player ready (like the old Player.tsx onReady)
   private async handlePlayerReady(): Promise<void> {
     try {
       console.log("Digital Twin Player Ready");
 
-      // Reset scene
-      await this.safeApiCall(() => (window as any).fdapi.reset(1 | 2 | 4));
+      // Wait a moment for fdapi to be available
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Load initial data
-      await this.loadInitialData();
+      if (!window.fdapi) {
+        throw new Error("fdapi not available in onReady callback");
+      }
+
+      // Initialize API and load data
+      await this.initializeAPI();
 
       this.updateConnectionState({
         status: ConnectionStatus.CONNECTED,
@@ -154,28 +165,157 @@ class DigitalTwinService {
         lastConnected: new Date(),
       });
 
-      console.log("Digital Twin fully initialized");
+      console.log("Digital Twin fully initialized and ready");
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Initialization failed";
-      this.updateConnectionState({
-        status: ConnectionStatus.ERROR,
-        error: errorMessage,
-      });
+      console.error("Failed in handlePlayerReady:", error);
+      this.handleConnectionError(error);
     }
   }
 
-  private handlePlayerEvent(eventData: any): void {
+  // ✨ SIMPLE: Handle player events (like the old Player.tsx onEvent)
+  private handlePlayerEvent(eventData?: any): void {
     console.log("Digital Twin Event:", eventData);
     // Handle specific events as needed
   }
 
-  // Data Loading
+  // ✨ UPDATED: Enhanced disconnect with console restoration
+  disconnect(): void {
+    this.clearTimers();
+    this.restoreConsoleLog();
+
+    this.updateConnectionState({
+      status: ConnectionStatus.DISCONNECTED,
+      error: null,
+      retryCount: 0,
+    });
+  }
+
+  async reconnect(): Promise<boolean> {
+    this.clearTimers();
+    return this.initialize();
+  }
+
+  // ✨ PUBLIC API METHODS
+  async playAnimation(id: string | number): Promise<boolean> {
+    try {
+      await this.safeApiCall(() => window.fdapi!.camera.playAnimation(id));
+      return true;
+    } catch (error) {
+      console.error("Failed to play animation:", error);
+      return false;
+    }
+  }
+
+  async stopAnimation(): Promise<boolean> {
+    try {
+      await this.safeApiCall(() => window.fdapi!.camera.stopAnimation());
+      return true;
+    } catch (error) {
+      console.error("Failed to stop animation:", error);
+      return false;
+    }
+  }
+
+  async toggleLayer(id: string, visible: boolean): Promise<boolean> {
+    try {
+      if (visible) {
+        await this.safeApiCall(() => window.fdapi!.infoTree.show(id));
+      } else {
+        await this.safeApiCall(() => window.fdapi!.infoTree.hide(id));
+      }
+      return true;
+    } catch (error) {
+      console.error("Failed to toggle layer:", error);
+      return false;
+    }
+  }
+
+  // ✨ EVENT LISTENER METHODS
+  onConnectionChange(listener: ConnectionListener): () => void {
+    this.connectionListeners.add(listener);
+    return () => this.connectionListeners.delete(listener);
+  }
+
+  onDataUpdate(listener: DataListener): () => void {
+    this.dataListeners.add(listener);
+    return () => this.dataListeners.delete(listener);
+  }
+
+  // ✨ NEW: Helper methods for UI components
+  getElapsedTime(): number {
+    const startTime = this._connectionState.initStartTime || new Date();
+    return Math.round((Date.now() - startTime.getTime()) / 1000);
+  }
+
+  getStatusMessage(): string {
+    const elapsed = this.getElapsedTime();
+
+    switch (this._connectionState.status) {
+      case ConnectionStatus.INITIALIZING:
+        return "Initializing Digital Twin...";
+      case ConnectionStatus.CONNECTING:
+        return `Establishing connection... (${elapsed}s)`;
+      case ConnectionStatus.CONNECTED:
+        return "Connected! Loading complete.";
+      case ConnectionStatus.TIMEOUT:
+        return "Connection timeout";
+      case ConnectionStatus.ERROR:
+        return `Connection error: ${this._connectionState.error}`;
+      case ConnectionStatus.RECONNECTING:
+        return `Reconnecting... (attempt ${this._connectionState.retryCount})`;
+      default:
+        return "Disconnected";
+    }
+  }
+
+  // ✨ SIMPLE: Basic console monitoring (mainly for debugging)
+  private startConsoleMonitoring(): void {
+    console.log = (...args: any[]) => {
+      const message = args.join(" ");
+
+      // Just log ac.min.js messages for debugging - don't act on them
+      if (
+        message.includes("host:") ||
+        message.includes("Connected!") ||
+        message.includes("**ice_connection:") ||
+        message.includes("video: loading")
+      ) {
+        // ac.min.js is working - but we'll handle success via onReady callback
+      }
+
+      // Call original console.log
+      this.originalConsoleLog.apply(console, args);
+    };
+  }
+
+  // ✨ PASSIVE: Initialize API without waiting - it should be ready
+  private async initializeAPI(): Promise<void> {
+    if (!window.fdapi) {
+      throw new Error("Digital Twin API not available");
+    }
+
+    try {
+      console.log("DigitalTwinService: Resetting scene...");
+      // Reset scene
+      await window.fdapi.reset(1 | 2 | 4);
+
+      console.log("DigitalTwinService: Loading initial data...");
+      // Load initial data
+      await this.loadInitialData();
+
+      console.log("DigitalTwinService: API initialization complete");
+    } catch (error) {
+      console.error("DigitalTwinService: Failed to initialize API:", error);
+      throw error;
+    }
+  }
+
+  // ✨ MOVED: Data loading logic from old DigitalTwinService
   private async loadInitialData(): Promise<void> {
     try {
       // Load layer tree
       const layerResponse = await this.safeApiCall<LayerTreeResponse>(() =>
-        (window as any).fdapi.infoTree.get()
+        window.fdapi!.infoTree.get()
       );
 
       if (layerResponse?.infotree) {
@@ -195,7 +335,7 @@ class DigitalTwinService {
 
       // Load animations
       const animationsResponse = await this.safeApiCall<AnimationListResponse>(
-        () => (window as any).fdapi.camera.getAnimationList()
+        () => window.fdapi!.camera.getAnimationList()
       );
 
       if (animationsResponse?.data) {
@@ -205,7 +345,7 @@ class DigitalTwinService {
           try {
             const imageResponse =
               await this.safeApiCall<AnimationImageResponse>(() =>
-                (window as any).fdapi.camera.getAnimationImage(item.name)
+                window.fdapi!.camera.getAnimationImage(item.name)
               );
 
             animationList.push({
@@ -236,9 +376,94 @@ class DigitalTwinService {
     }
   }
 
-  // Safe API calls with error handling
+  // ✨ NEW: Handle connection errors
+  private handleConnectionError(error: any): void {
+    this.clearInitTimer();
+
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    this.updateConnectionState({
+      status: ConnectionStatus.ERROR,
+      error: errorMessage,
+      retryCount: this._connectionState.retryCount + 1,
+    });
+
+    console.error("Digital Twin connection failed:", error);
+
+    if (this._connectionState.retryCount < this.maxRetries) {
+      this.scheduleReconnect();
+    }
+  }
+
+  // ✨ NEW: Handle initialization errors
+  private handleInitializationError(error: any): void {
+    this.clearInitTimer();
+
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    this.updateConnectionState({
+      status: ConnectionStatus.ERROR,
+      error: `Initialization error: ${errorMessage}`,
+      retryCount: this._connectionState.retryCount + 1,
+    });
+
+    console.error("Digital Twin initialization failed:", error);
+  }
+
+  // ✨ SIMPLE: Handle initialization timeout with basic diagnostics
+  private handleInitializationTimeout(): void {
+    this.clearInitTimer();
+
+    this.updateConnectionState({
+      status: ConnectionStatus.TIMEOUT,
+      error: "Digital Twin initialization timed out after 10 seconds",
+    });
+
+    console.warn("Digital Twin initialization timeout");
+  }
+
+  private scheduleReconnect(): void {
+    if (this.reconnectTimer) return;
+
+    this.updateConnectionState({ status: ConnectionStatus.RECONNECTING });
+
+    const delay =
+      this.retryDelay *
+      Math.pow(2, Math.min(this._connectionState.retryCount, 5));
+
+    this.reconnectTimer = setTimeout(async () => {
+      this.reconnectTimer = null;
+      await this.initialize();
+    }, delay);
+  }
+
+  // ✨ NEW: Enhanced timer management
+  private clearTimers(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    if (this.initTimer) {
+      clearTimeout(this.initTimer);
+      this.initTimer = null;
+    }
+  }
+
+  private clearInitTimer(): void {
+    if (this.initTimer) {
+      clearTimeout(this.initTimer);
+      this.initTimer = null;
+    }
+  }
+
+  // ✨ NEW: Console restoration
+  private restoreConsoleLog(): void {
+    console.log = this.originalConsoleLog;
+  }
+
+  // ✨ PRIVATE HELPERS
   private async safeApiCall<T>(apiCall: () => Promise<T>): Promise<T> {
-    if (!this.api) {
+    if (!window.fdapi) {
       throw new Error("Digital Twin API not available");
     }
 
@@ -250,62 +475,15 @@ class DigitalTwinService {
     }
   }
 
-  // Public API methods with error handling
-  async playAnimation(id: string | number): Promise<boolean> {
-    try {
-      await this.safeApiCall(() => this.api!.camera.playAnimation(id));
-      return true;
-    } catch (error) {
-      console.error("Failed to play animation:", error);
-      return false;
-    }
-  }
-
-  async stopAnimation(): Promise<boolean> {
-    try {
-      await this.safeApiCall(() => this.api!.camera.stopAnimation());
-      return true;
-    } catch (error) {
-      console.error("Failed to stop animation:", error);
-      return false;
-    }
-  }
-
-  async toggleLayer(id: string, visible: boolean): Promise<boolean> {
-    try {
-      if (visible) {
-        await this.safeApiCall(() => this.api!.infoTree.show(id));
-      } else {
-        await this.safeApiCall(() => this.api!.infoTree.hide(id));
-      }
-      return true;
-    } catch (error) {
-      console.error("Failed to toggle layer:", error);
-      return false;
-    }
-  }
-
-  // Event Listeners
-  onConnectionChange(listener: ConnectionListener): () => void {
-    this.connectionListeners.add(listener);
-    return () => this.connectionListeners.delete(listener);
-  }
-
-  onDataUpdate(listener: DataListener): () => void {
-    this.dataListeners.add(listener);
-    return () => this.dataListeners.delete(listener);
-  }
-
-  // Private helpers
   private updateConnectionState(updates: Partial<ConnectionState>): void {
-    this.connectionState = { ...this.connectionState, ...updates };
+    this._connectionState = { ...this._connectionState, ...updates };
     this.notifyConnectionListeners();
   }
 
   private notifyConnectionListeners(): void {
     this.connectionListeners.forEach((listener) => {
       try {
-        listener(this.connectionState);
+        listener(this._connectionState);
       } catch (error) {
         console.error("Error in connection listener:", error);
       }
@@ -324,63 +502,17 @@ class DigitalTwinService {
       }
     });
   }
-
-  private waitForConnection(timeout: number): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const timeoutId = setTimeout(() => {
-        reject(new Error("Connection timeout"));
-      }, timeout);
-
-      const checkConnection = () => {
-        if (this.connectionState.status === ConnectionStatus.CONNECTED) {
-          clearTimeout(timeoutId);
-          resolve();
-        } else if (this.connectionState.status === ConnectionStatus.ERROR) {
-          clearTimeout(timeoutId);
-          reject(new Error(this.connectionState.error || "Connection failed"));
-        } else {
-          setTimeout(checkConnection, 100);
-        }
-      };
-
-      checkConnection();
-    });
-  }
-
-  private scheduleReconnect(): void {
-    if (this.reconnectTimer) return;
-
-    this.updateConnectionState({
-      status: ConnectionStatus.RECONNECTING,
-    });
-
-    const delay =
-      this.retryDelay *
-      Math.pow(2, Math.min(this.connectionState.retryCount, 5)); // Exponential backoff
-
-    this.reconnectTimer = setTimeout(async () => {
-      this.reconnectTimer = null;
-      await this.connect(true);
-    }, delay);
-  }
-
-  private clearReconnectTimer(): void {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-    }
-  }
 }
 
-// Singleton instance
+// ✨ SINGLETON INSTANCE: Outside the class
 export const digitalTwinService = new DigitalTwinService();
 
-// React Hook for using the service
+// ✨ REACT HOOK: Also outside the class
 import { useState, useEffect } from "react";
 
 export const useDigitalTwinService = () => {
   const [connectionState, setConnectionState] = useState<ConnectionState>(
-    digitalTwinService["connectionState"]
+    digitalTwinService.connectionState
   );
 
   useEffect(() => {
@@ -389,16 +521,25 @@ export const useDigitalTwinService = () => {
     return unsubscribe;
   }, []);
 
+  //Memoize functions so they don't cause re-renders
+  const connect = useCallback(() => digitalTwinService.connect(), []);
+  const initialize = useCallback(() => digitalTwinService.initialize(), []);
+  const disconnect = useCallback(() => digitalTwinService.disconnect(), []);
+  const reconnect = useCallback(() => digitalTwinService.reconnect(), []);
+
   return {
     connectionState,
     isConnected: digitalTwinService.isConnected,
-    connect: () => digitalTwinService.connect(),
-    disconnect: () => digitalTwinService.disconnect(),
-    reconnect: () => digitalTwinService.reconnect(),
+    connect,
+    initialize,
+    disconnect,
+    reconnect,
     playAnimation: digitalTwinService.playAnimation.bind(digitalTwinService),
     stopAnimation: digitalTwinService.stopAnimation.bind(digitalTwinService),
     toggleLayer: digitalTwinService.toggleLayer.bind(digitalTwinService),
-    // Add data listener subscription
     onDataUpdate: digitalTwinService.onDataUpdate.bind(digitalTwinService),
+    // ✨ NEW: Helper methods for UI components
+    getStatusMessage: () => digitalTwinService.getStatusMessage(),
+    getElapsedTime: () => digitalTwinService.getElapsedTime(),
   };
 };

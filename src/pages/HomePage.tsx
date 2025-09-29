@@ -8,9 +8,10 @@ import { useHeader } from "../contexts/HeaderContext";
 import { useDigitalTwin } from "../contexts/DigitalTwinContext";
 import ErrorBoundary from "../components/ErrorBoundary/ErrorBoundary";
 import { AnimationErrorBoundary } from "../components/ErrorBoundary/ErrorBoundary";
+
 import {
-  digitalTwinService,
   useDigitalTwinService,
+  ConnectionStatus,
 } from "@/services/DigitalTwinService";
 
 // Components wrapped in error boundaries
@@ -28,14 +29,57 @@ const HomeContainer = styled(Box)({
   overflow: "hidden",
 });
 
+// Connection status indicator for debugging
+const ConnectionStatusIndicator = styled(Box)<{ status: string }>(
+  ({ status }) => ({
+    position: "absolute",
+    bottom: 16,
+    right: 16,
+    zIndex: 1000, //highest z-index
+    padding: "8px 16px",
+    borderRadius: "4px",
+    color: "white",
+    fontSize: "12px",
+    fontFamily: "monospace",
+    backgroundColor:
+      status === "connected"
+        ? "rgba(76, 175, 80, 0.8)"
+        : status === "connecting" ||
+          status === "reconnecting" ||
+          status === "initializing"
+        ? "rgba(255, 193, 7, 0.8)"
+        : status === "error" || status === "timeout"
+        ? "rgba(244, 67, 54, 0.8)"
+        : "rgba(158, 158, 158, 0.8)",
+    border: "1px solid",
+    borderColor:
+      status === "connected"
+        ? "#4CAF50"
+        : status === "connecting" ||
+          status === "reconnecting" ||
+          status === "initializing"
+        ? "#FFC107"
+        : status === "error" || status === "timeout"
+        ? "#F44336"
+        : "#9E9E9E",
+  })
+);
+
 const HomePage: React.FC = () => {
   const { state: headerState } = useHeader();
   const { state: digitalTwinState, dispatch } = useDigitalTwin();
   const { connectionState, connect, onDataUpdate } = useDigitalTwinService();
 
-  // Initialize connection on mount
   useEffect(() => {
-    connect();
+    const initConnection = async () => {
+      try {
+        await connect(); //doesn't matter whether true or false is returned here
+      } catch (error) {
+        console.error("Digital Twin initialization error:", error);
+      }
+    };
+
+    initConnection();
   }, [connect]);
 
   // Subscribe to Digital Twin service data updates
@@ -54,17 +98,37 @@ const HomePage: React.FC = () => {
     return unsubscribe;
   }, [dispatch, onDataUpdate]);
 
-  // Update player ready state based on connection
+  // Use ConnectionStatus enum for type safety
   useEffect(() => {
     dispatch({
       type: "SET_READY_STATE",
-      payload: connectionState.status === "connected",
+      payload: connectionState.status === ConnectionStatus.CONNECTED,
     });
   }, [connectionState.status, dispatch]);
 
+  // Helper function for status display
+  const getConnectionMessage = () => {
+    switch (connectionState.status) {
+      case ConnectionStatus.INITIALIZING:
+        return "Initializing...";
+      case ConnectionStatus.CONNECTING:
+        return "Connecting...";
+      case ConnectionStatus.RECONNECTING:
+        return "Reconnecting...";
+      case ConnectionStatus.CONNECTED:
+        return "Connected";
+      case ConnectionStatus.TIMEOUT:
+        return "Timeout";
+      case ConnectionStatus.ERROR:
+        return `Error: ${connectionState.error}`;
+      default:
+        return "Disconnected";
+    }
+  };
+
   return (
     <HomeContainer>
-      {/* Player container - no longer a React component */}
+      {/* Player container - this is where ac.min.js will render */}
       <Box
         id="player"
         sx={{
@@ -78,53 +142,58 @@ const HomePage: React.FC = () => {
         }}
       />
 
-      {/* Header - wrapped in error boundary */}
-      {digitalTwinState.playerIsReady && (
-        <ErrorBoundary componentName="Header" showRetry={true}>
-          <Header />
-        </ErrorBoundary>
+      {process.env.NODE_ENV === "development" && (
+        <ConnectionStatusIndicator status={connectionState.status}>
+          DT: {getConnectionMessage()}
+          {connectionState.retryCount > 0 &&
+            ` (Retry ${connectionState.retryCount})`}
+        </ConnectionStatusIndicator>
       )}
 
-      {/* Left side overlay for LayerTree and Animation */}
-      {headerState.showUI &&
-        (headerState.showLayerTree || headerState.showAnimation) && (
-          <ErrorBoundary componentName="Left Panel" showRetry={false}>
-            <LayoutBox side="left" delay={0.3}>
-              <Title icon="tucengshu">Menu</Title>
-              {headerState.showLayerTree && (
-                <ErrorBoundary componentName="Layer Tree" showRetry={true}>
-                  <LayerTree />
-                </ErrorBoundary>
-              )}
-              {headerState.showAnimation && (
-                <AnimationErrorBoundary>
-                  <Animation />
-                </AnimationErrorBoundary>
-              )}
-            </LayoutBox>
-          </ErrorBoundary>
-        )}
+      <ErrorBoundary componentName="Header" showRetry={true}>
+        <Header />
+      </ErrorBoundary>
 
-      {/* Weather overlay */}
+      {/* Left side overlay for LayerTree and Animation */}
+      {headerState.showUI && (
+        <>
+          {headerState.showLayerTree && (
+            <LayoutBox side="left">
+              <Title>Layers</Title>
+              <ErrorBoundary componentName="LayerTree">
+                <LayerTree />
+              </ErrorBoundary>
+            </LayoutBox>
+          )}
+
+          {headerState.showAnimation && (
+            <LayoutBox side="left">
+              <Title>Animations</Title>
+              <AnimationErrorBoundary>
+                <Animation />
+              </AnimationErrorBoundary>
+            </LayoutBox>
+          )}
+        </>
+      )}
+
+      {/* Right side overlay for Weather */}
       {headerState.showUI && headerState.showWeather && (
-        <ErrorBoundary componentName="Weather" showRetry={true}>
-          <Weather />
-        </ErrorBoundary>
+        <LayoutBox side="right">
+          <Title>Weather Control</Title>
+          <ErrorBoundary componentName="Weather">
+            <Weather />
+          </ErrorBoundary>
+        </LayoutBox>
       )}
 
       {/* Router navigation */}
-      {digitalTwinState.playerIsReady && headerState.showUI && (
-        <ErrorBoundary componentName="Router Navigation" showRetry={false}>
-          <RouterNav />
-        </ErrorBoundary>
-      )}
+      <ErrorBoundary componentName="RouterNav">
+        <RouterNav />
+      </ErrorBoundary>
 
-      {/* Page content - always render when player is ready */}
-      {digitalTwinState.playerIsReady && (
-        <ErrorBoundary componentName="Page Content" showRetry={true}>
-          <Outlet />
-        </ErrorBoundary>
-      )}
+      {/* Outlet for nested routes */}
+      <Outlet />
     </HomeContainer>
   );
 };

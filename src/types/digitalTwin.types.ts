@@ -85,6 +85,7 @@ declare global {
         serverUrl: string,
         options: {
           domId: string;
+          iid?: string;
           apiOptions: {
             onReady: () => void | Promise<void>;
             onEvent: (event: any) => void;
@@ -94,6 +95,7 @@ declare global {
     };
     HostConfig: {
       Player: string;
+      InstanceId?: string;
       Path?: string;
       UseHttps?: boolean;
       Quality?: string;
