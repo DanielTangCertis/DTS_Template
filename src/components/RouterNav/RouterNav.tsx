@@ -87,7 +87,7 @@ export const navigationItems: NavigationItem[] = [
   {
     name: "Page1",
     key: 1,
-    path: "/home/page1", // Match the nested route structure
+    path: "/page1", // Match the nested route structure
     icon: "icon1",
     img: img1Default,
     activeImg: img1Active,
@@ -95,7 +95,7 @@ export const navigationItems: NavigationItem[] = [
   {
     name: "Page2",
     key: 2,
-    path: "/home/page2", // Match the nested route structure
+    path: "/page2", // Match the nested route structure
     icon: "icon3",
     img: img3Default,
     activeImg: img3Active,
@@ -103,7 +103,7 @@ export const navigationItems: NavigationItem[] = [
   {
     name: "Page3",
     key: 3,
-    path: "/home/page3", // Match the nested route structure
+    path: "/page3", // Match the nested route structure
     icon: "icon5",
     img: img5Default,
     activeImg: img5Active,
