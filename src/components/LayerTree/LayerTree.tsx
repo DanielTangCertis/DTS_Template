@@ -135,6 +135,12 @@ const LayerTree: React.FC = () => {
     };
 
     setVisibilityState(initVisibility(layerTree));
+    
+    // Expand all top-level parent nodes by default
+    if (layerTree.length > 0) {
+      const topLevelIds = layerTree.map(node => node.index.toString());
+      setExpanded(topLevelIds);
+    }
   }, [state.layerTree]);
 
   const handleToggle = (
@@ -154,21 +160,69 @@ const LayerTree: React.FC = () => {
     const currentVisibility = visibilityState[nodeId];
     const newVisibility = !currentVisibility;
 
-    // Optimistically update local state
-    setVisibilityState((prev) => ({
-      ...prev,
-      [nodeId]: newVisibility,
-    }));
+    // Helper function to get all descendant node IDs
+    const getAllDescendants = (parentNode: LayerTreeItem): string[] => {
+      const descendants: string[] = [];
+      
+      const traverse = (node: LayerTreeItem) => {
+        descendants.push(node.index.toString());
+        if (node.children) {
+          node.children.forEach(child => traverse(child));
+        }
+      };
+      
+      if (parentNode.children) {
+        parentNode.children.forEach(child => traverse(child));
+      }
+      
+      return descendants;
+    };
+
+    // Get all descendants of the toggled node
+    const descendantIds = getAllDescendants(node);
+
+    // Update visibility for the node and all its descendants
+    setVisibilityState((prev) => {
+      const updated = { ...prev, [nodeId]: newVisibility };
+      
+      // Set all descendants to the same visibility as parent
+      descendantIds.forEach(id => {
+        updated[id] = newVisibility;
+      });
+      
+      return updated;
+    });
 
     try {
+      // Toggle the main node
       await toggleLayerVisibility(node.id, newVisibility);
+      
+      // Also toggle all descendants
+      const toggleDescendants = async (parentNode: LayerTreeItem) => {
+        if (parentNode.children) {
+          for (const child of parentNode.children) {
+            await toggleLayerVisibility(child.id, newVisibility);
+            if (child.children) {
+              await toggleDescendants(child);
+            }
+          }
+        }
+      };
+      
+      await toggleDescendants(node);
     } catch (error) {
       console.error("Error toggling layer visibility:", error);
       // Revert on error
-      setVisibilityState((prev) => ({
-        ...prev,
-        [nodeId]: currentVisibility,
-      }));
+      setVisibilityState((prev) => {
+        const reverted = { ...prev, [nodeId]: currentVisibility };
+        
+        // Revert descendants too
+        descendantIds.forEach(id => {
+          reverted[id] = prev[id]; // Use original state
+        });
+        
+        return reverted;
+      });
     }
   };
 
