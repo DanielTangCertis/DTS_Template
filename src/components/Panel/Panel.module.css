@@ -1,59 +1,89 @@
 /* Panel Base Styles */
 .panelContainer {
-  position: fixed;
-  top: 20px;
-  bottom: 20px;
+  position: absolute;
+  top: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  padding-top: 50px;
-  overflow: hidden; /* Prevent scrollbars */
-  z-index: 1;
+  padding: 80px 0 40px;
+  overflow: hidden;
+  z-index: 9;
   box-sizing: border-box;
-  max-width: min-content;
+  width: 25vw;
+  min-width: 15vw;
+  max-width: 30vw;
 }
 
-/* Left Panel Styles */
+.contentBox {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+/* Left Panel Styles with Gradient */
 .panelLeft {
-  left: 20px;
-  width: calc(50vw - 40px); /* Account for margins */
+  left: 0;
+  padding-left: 24px;
+  padding-right: 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
 }
 
-/* Right Panel Styles */
+/* Right Panel Styles with Gradient */
 .panelRight {
-  right: 20px;
-  width: calc(50vw - 40px); /* Account for margins */
+  right: 0;
+  padding-left: 30px;
+  padding-right: 20px;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
 }
 
 /* Chart Styles - More space for readability */
 .chartSection {
   display: flex;
   flex-direction: column;
-  flex: 1; /* Share space equally with other chart sections */
-  min-height: 200px; /* Increased minimum for better chart readability */
+  flex: 1;
+  min-height: 200px;
   max-height: none;
-  margin-bottom: 1.5rem; /* Use rem units */
+  margin-bottom: 1.5rem;
   overflow: hidden;
 }
 
 .chartContainer {
   flex: 1;
   width: 100%;
-  border-radius: 0.5rem; /* Use rem instead of px */
+  border-radius: 0.5rem;
   overflow: hidden;
   position: relative;
 }
 
-/* Responsive adjustments for charts */
+/* Responsive adjustments */
+@media (max-width: 1600px) {
+  .panelContainer {
+    width: 28vw;
+    max-width: 35vw;
+  }
+}
+
 @media (max-width: 1024px) {
   .panelContainer {
-    padding: 2rem; /* Reduce padding on smaller screens */
+    width: 35vw;
+    max-width: 40vw;
+    padding: 60px 0 30px;
+    min-width: 280px;
   }
-  
-  .panelLeft,
+
+  .panelLeft {
+    padding-left: 20px;
+  }
+
   .panelRight {
-    width: calc(50vw - 2rem);
+    padding-left: 20px;
+    padding-right: 16px;
   }
-  
+
   .chartSection {
     min-height: 180px;
     margin-bottom: 1rem;
@@ -64,25 +94,26 @@
   .panelContainer {
     position: relative;
     width: 100%;
+    max-width: 100%;
+    min-width: auto;
     height: auto;
     padding: 1rem;
     top: auto;
-    bottom: auto;
     max-height: none;
   }
-  
-  .panelLeft,
-  .panelRight {
-    width: calc(100% - 1rem);
-    position: relative;
-    left: auto;
-    right: auto;
-  }
-  
+
   .panelLeft {
     margin-bottom: 1rem;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+    padding-left: 1rem;
   }
-  
+
+  .panelRight {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
   .chartSection {
     min-height: 160px;
   }

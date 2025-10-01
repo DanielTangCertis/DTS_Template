@@ -1,6 +1,9 @@
+/**
+ * This Service is in charge of monitoring and setting the connection status of the app to the DTS Cloud Stream. It logs the progress of ac.min.js
+ */
+
 import { useCallback } from "react";
 
-// src/services/DigitalTwinService.ts
 import {
   FDApi,
   LayerTreeResponse,
@@ -9,30 +12,27 @@ import {
   PlayerConfig,
 } from "../types/digitalTwin.types";
 
-// ✨ UPDATED: Extended enum with new states while maintaining compatibility
 export enum ConnectionStatus {
-  DISCONNECTED = "disconnected", // ← Existing
-  INITIALIZING = "initializing", // ← NEW
-  CONNECTING = "connecting", // ← Existing
-  CONNECTED = "connected", // ← Existing
-  ERROR = "error", // ← Existing
-  TIMEOUT = "timeout", // ← NEW
-  RECONNECTING = "reconnecting", // ← Existing
+  DISCONNECTED = "disconnected",
+  INITIALIZING = "initializing",
+  CONNECTING = "connecting",
+  CONNECTED = "connected",
+  ERROR = "error",
+  TIMEOUT = "timeout",
+  RECONNECTING = "reconnecting",
 }
 
-// ✨ UPDATED: Extended interface with optional new property for compatibility
 export interface ConnectionState {
   status: ConnectionStatus;
   error: string | null;
   retryCount: number;
   lastConnected: Date | null;
-  initStartTime?: Date; // ← NEW (optional for backward compatibility)
+  initStartTime?: Date;
 }
 
 type ConnectionListener = (state: ConnectionState) => void;
 type DataListener = (type: "layerTree" | "animations", data: any) => void;
 
-// ✨ UNIFIED: Single service handling both ac.min.js monitoring AND React service
 class DigitalTwinService {
   private _connectionState: ConnectionState = {
     status: ConnectionStatus.DISCONNECTED,
@@ -45,15 +45,14 @@ class DigitalTwinService {
   private connectionListeners: Set<ConnectionListener> = new Set();
   private dataListeners: Set<DataListener> = new Set();
   private reconnectTimer: NodeJS.Timeout | null = null;
-  // ✨ NEW: Timer for initialization timeout
+  // Timer for initialization timeout
   private initTimer: NodeJS.Timeout | null = null;
-  // ✨ NEW: Console monitoring system
+  // Console monitoring system
   private originalConsoleLog = console.log;
   private maxRetries = 5;
   private retryDelay = 3000;
   private initTimeout = 10000; // 10 seconds
 
-  // ✨ PUBLIC GETTERS: These must be inside the class
   get status() {
     return this._connectionState.status;
   }
@@ -70,12 +69,12 @@ class DigitalTwinService {
     return { ...this._connectionState };
   }
 
-  // ✨ BACKWARD COMPATIBLE: Keep both connect() and initialize() methods
+  // Keep both connect() and initialize() methods
   async connect(retryOnFailure = true): Promise<boolean> {
     return this.initialize();
   }
 
-  // ✨ SIMPLE: Initialize by creating the DigitalTwinPlayer (replaces old Player.tsx)
+  // Initialize by creating the DigitalTwinPlayer
   async initialize(): Promise<boolean> {
     
     // Already connected
@@ -98,7 +97,6 @@ class DigitalTwinService {
     });
 
     try {
-      // Check if required components are available
       if (!window.HostConfig?.Player) {
         throw new Error(
           "HostConfig.Player not found. Make sure ac_conf.js is loaded."
@@ -111,10 +109,10 @@ class DigitalTwinService {
         );
       }
 
-      // ✨ START MONITORING: Set up console monitoring before creating player
+      // Set up console monitoring before creating player
       this.startConsoleMonitoring();
 
-      // ✨ CREATE PLAYER: This is what Player.tsx used to do
+      // CREATE PLAYER
       console.log("Creating Digital Twin Player...");
       const playerConfig: PlayerConfig = {
         domId: "player",
@@ -143,7 +141,6 @@ class DigitalTwinService {
     }
   }
 
-  // ✨ SIMPLE: Handle player ready (like the old Player.tsx onReady)
   private async handlePlayerReady(): Promise<void> {
     try {
       console.log("Digital Twin Player Ready");
@@ -172,13 +169,12 @@ class DigitalTwinService {
     }
   }
 
-  // ✨ SIMPLE: Handle player events (like the old Player.tsx onEvent)
   private handlePlayerEvent(eventData?: any): void {
     console.log("Digital Twin Event:", eventData);
     // Handle specific events as needed
   }
 
-  // ✨ UPDATED: Enhanced disconnect with console restoration
+  // Enhanced disconnect with console restoration
   disconnect(): void {
     this.clearTimers();
     this.restoreConsoleLog();
@@ -195,7 +191,7 @@ class DigitalTwinService {
     return this.initialize();
   }
 
-  // ✨ PUBLIC API METHODS
+  // PUBLIC API METHODS
   async playAnimation(id: string | number): Promise<boolean> {
     try {
       await this.safeApiCall(() => window.fdapi!.camera.playAnimation(id));
@@ -230,7 +226,7 @@ class DigitalTwinService {
     }
   }
 
-  // ✨ EVENT LISTENER METHODS
+  // EVENT LISTENER METHODS
   onConnectionChange(listener: ConnectionListener): () => void {
     this.connectionListeners.add(listener);
     return () => this.connectionListeners.delete(listener);
@@ -241,7 +237,7 @@ class DigitalTwinService {
     return () => this.dataListeners.delete(listener);
   }
 
-  // ✨ NEW: Helper methods for UI components
+  // Helper methods for UI components
   getElapsedTime(): number {
     const startTime = this._connectionState.initStartTime || new Date();
     return Math.round((Date.now() - startTime.getTime()) / 1000);
@@ -268,7 +264,7 @@ class DigitalTwinService {
     }
   }
 
-  // ✨ SIMPLE: Basic console monitoring (mainly for debugging)
+  // Basic console monitoring (mainly for debugging)
   private startConsoleMonitoring(): void {
     console.log = (...args: any[]) => {
       const message = args.join(" ");
@@ -288,7 +284,6 @@ class DigitalTwinService {
     };
   }
 
-  // ✨ PASSIVE: Initialize API without waiting - it should be ready
   private async initializeAPI(): Promise<void> {
     if (!window.fdapi) {
       throw new Error("Digital Twin API not available");
@@ -310,7 +305,6 @@ class DigitalTwinService {
     }
   }
 
-  // ✨ MOVED: Data loading logic from old DigitalTwinService
   private async loadInitialData(): Promise<void> {
     try {
       // Load layer tree
@@ -376,7 +370,7 @@ class DigitalTwinService {
     }
   }
 
-  // ✨ NEW: Handle connection errors
+  // Handle connection errors
   private handleConnectionError(error: any): void {
     this.clearInitTimer();
 
@@ -395,7 +389,7 @@ class DigitalTwinService {
     }
   }
 
-  // ✨ NEW: Handle initialization errors
+  // Handle initialization errors
   private handleInitializationError(error: any): void {
     this.clearInitTimer();
 
@@ -410,7 +404,7 @@ class DigitalTwinService {
     console.error("Digital Twin initialization failed:", error);
   }
 
-  // ✨ SIMPLE: Handle initialization timeout with basic diagnostics
+  // Handle initialization timeout with basic diagnostics
   private handleInitializationTimeout(): void {
     this.clearInitTimer();
 
@@ -437,7 +431,7 @@ class DigitalTwinService {
     }, delay);
   }
 
-  // ✨ NEW: Enhanced timer management
+  // Enhanced timer management
   private clearTimers(): void {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
@@ -456,12 +450,12 @@ class DigitalTwinService {
     }
   }
 
-  // ✨ NEW: Console restoration
+  // Console restoration
   private restoreConsoleLog(): void {
     console.log = this.originalConsoleLog;
   }
 
-  // ✨ PRIVATE HELPERS
+  // PRIVATE HELPERS
   private async safeApiCall<T>(apiCall: () => Promise<T>): Promise<T> {
     if (!window.fdapi) {
       throw new Error("Digital Twin API not available");
@@ -504,10 +498,9 @@ class DigitalTwinService {
   }
 }
 
-// ✨ SINGLETON INSTANCE: Outside the class
+// SINGLETON INSTANCE
 export const digitalTwinService = new DigitalTwinService();
 
-// ✨ REACT HOOK: Also outside the class
 import { useState, useEffect } from "react";
 
 export const useDigitalTwinService = () => {
@@ -538,7 +531,7 @@ export const useDigitalTwinService = () => {
     stopAnimation: digitalTwinService.stopAnimation.bind(digitalTwinService),
     toggleLayer: digitalTwinService.toggleLayer.bind(digitalTwinService),
     onDataUpdate: digitalTwinService.onDataUpdate.bind(digitalTwinService),
-    // ✨ NEW: Helper methods for UI components
+    // Helper methods for UI components
     getStatusMessage: () => digitalTwinService.getStatusMessage(),
     getElapsedTime: () => digitalTwinService.getElapsedTime(),
   };

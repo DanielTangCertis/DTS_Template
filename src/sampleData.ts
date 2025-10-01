@@ -1,32 +1,3 @@
-export const lineSampleData = () => {
-  return [
-    {
-      id: "Inflow",
-      data: [
-        { x: "Jun", y: 57.9 },
-        { x: "Jul", y: 65.2 },
-        { x: "Aug", y: 71.2 },
-        { x: "Sep", y: 110 },
-        { x: "Oct", y: 89.5 },
-        { x: "Nov", y: 92 },
-        { x: "Dec", y: 98.44 },
-      ],
-    },
-    {
-      id: "Outflow",
-      data: [
-        { x: "Jun", y: 47.9 },
-        { x: "Jul", y: 120 },
-        { x: "Aug", y: 61.2 },
-        { x: "Sep", y: 68.3 },
-        { x: "Oct", y: 79.5 },
-        { x: "Nov", y: 52 },
-        { x: "Dec", y: 88.44 },
-      ],
-    },
-  ];
-};
-
 export const pieSampleData = () => {
   return [
     { id: "Fire Alarm", value: 9 },
@@ -54,6 +25,35 @@ export const barSampleData2 = () => {
     { id: "cat3", value: 101 },
     { id: "cat4", value: 74 },
     { id: "cat5", value: 87 },
+  ];
+};
+
+export const lineSampleData = () => {
+  return [
+    {
+      id: "Inflow",
+      data: [
+        { x: "Jun", y: 57.9 },
+        { x: "Jul", y: 65.2 },
+        { x: "Aug", y: 71.2 },
+        { x: "Sep", y: 110 },
+        { x: "Oct", y: 89.5 },
+        { x: "Nov", y: 92 },
+        { x: "Dec", y: 98.44 },
+      ],
+    },
+    {
+      id: "Outflow",
+      data: [
+        { x: "Jun", y: 47.9 },
+        { x: "Jul", y: 120 },
+        { x: "Aug", y: 61.2 },
+        { x: "Sep", y: 68.3 },
+        { x: "Oct", y: 79.5 },
+        { x: "Nov", y: 52 },
+        { x: "Dec", y: 88.44 },
+      ],
+    },
   ];
 };
 
@@ -324,5 +324,44 @@ export const lineSampleData2 = () => {
         },
       ],
     },
+  ];
+};
+
+export const expenditureData = () => {
+  return [
+    {
+      icon: "/assets/panel/icon_gdp@2x.png",
+      label: "YTD",
+      value: "23958.3",
+      suffix: "k",
+    },
+    {
+      icon: "/assets/panel/icon_gdp@2x.png",
+      label: "MTD",
+      value: "1987.2",
+      suffix: "k",
+    },
+    {
+      icon: "/assets/panel/icon_gdp@2x.png",
+      label: "WTD",
+      value: "485.7",
+      suffix: "k",
+    },
+    {
+      icon: "/assets/panel/icon_gdp@2x.png",
+      label: "YTD Growth",
+      value: "12.4",
+      suffix: "%",
+    },
+  ];
+};
+
+export const personnelData = () => {
+  return [
+    { info: "Staff", count: 57, unit: "%" },
+    { info: "Visitors", count: 21.8, unit: "%" },
+    { info: "Contractors", count: 5.5, unit: "%" },
+    { info: "Security", count: 9.3, unit: "%" },
+    { info: "Maintenance", count: 6.4, unit: "%" },
   ];
 };

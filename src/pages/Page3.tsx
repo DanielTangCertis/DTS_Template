@@ -1,24 +1,48 @@
-import React from "react";
-import { Box, styled } from "@mui/material";
-import { LayoutBox } from "../components/Layout";
+import { Box } from "@mui/material";
+import { lineSampleData2 } from "@/sampleData";
+import { Panel } from "../components/Panel/Panel";
+import { NivoChart } from "@/components/NivoChart/NivoChart";
 
-const Page3Container = styled(Box)({
-  width: "100%",
-  height: "100%",
-  position: "relative",
-  overflow: "hidden",
-});
+import {
+  pieSampleData,
+  lineSampleData,
+  barSampleData2,
+} from "@/sampleData";
 
 const Page3: React.FC = () => {
   return (
-    <Page3Container>
-      <LayoutBox side="left" delay={0.3}>
-        <Box>Content</Box>
-      </LayoutBox>
-      <LayoutBox side="right" delay={0.3}>
-        <Box>Content</Box>
-      </LayoutBox>
-    </Page3Container>
+    <Box
+      sx={{
+        width: "100%",
+        height: "100vh",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Right Panel */}
+      <Panel side="right" delay={0}>
+        <NivoChart
+          type="pie"
+          title="Incidents Reported by Category (YTD)"
+          data={pieSampleData()}
+        />
+        <NivoChart
+          type="line"
+          title="Energy Consumption"
+          data={lineSampleData2()}
+        />
+      </Panel>
+
+      {/* Left Panel */}
+      <Panel side="left" delay={0}>
+        <NivoChart type="line" title="Crowd Flow" data={lineSampleData()} />
+        <NivoChart
+          type="bar"
+          title="This is a bar chart"
+          data={barSampleData2()}
+        />
+      </Panel>
+    </Box>
   );
 };
 

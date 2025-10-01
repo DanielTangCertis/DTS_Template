@@ -65,7 +65,7 @@ interface AnimationItem {
   img: string;
 }
 
-const Animation: React.FC = () => {
+const AnimatedTours: React.FC = () => {
   const { state: digitalTwinState } = useDigitalTwin();
   const { state: headerState } = useHeader();
 
@@ -99,7 +99,7 @@ const Animation: React.FC = () => {
           color: 'rgba(255, 255, 255, 0.6)'
         }}>
           <Typography variant="body2">
-            No animations available
+            No animated tours available.
           </Typography>
         </Box>
       </AnimationContainer>
@@ -129,4 +129,4 @@ const Animation: React.FC = () => {
   );
 };
 
-export default Animation;
+export default AnimatedTours;

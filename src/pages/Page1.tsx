@@ -1,122 +1,21 @@
-import React, { useMemo } from "react";
-import { Box } from "@mui/material";
+import { Box, Typography, Grid, List, ListItem } from "@mui/material";
+import { Person as PersonIcon } from "@mui/icons-material";
 import {
   pieSampleData,
   barSampleData,
   lineSampleData,
   barSampleData2,
+  expenditureData,
+  personnelData,
 } from "@/sampleData";
-import { Panel, ChartConfig } from "../components/Panel/Panel";
-import type { CustomContentConfig } from "../components/CustomContent/CustomContent";
+import { Panel } from "../components/Panel/Panel";
+import { NivoChart } from "../components/NivoChart/NivoChart";
+import { CustomContent } from "../components/CustomContent/CustomContent";
+import { IconBox, Title } from "../components/Layout";
+
+import styles from "../components/CustomContent/CustomContent.module.css";
 
 const Page1: React.FC = () => {
-  // Left panel data
-  const leftTrafficData = useMemo(
-    () => [
-      {
-        icon: "/assets/panel/icon_gdp@2x.png",
-        label: "YTD",
-        value: "23958.3",
-        suffix: "k",
-      },
-      {
-        icon: "/assets/panel/icon_gdp@2x.png",
-        label: "MTD",
-        value: "1987.2",
-        suffix: "k",
-      },
-      {
-        icon: "/assets/panel/icon_gdp@2x.png",
-        label: "WTD",
-        value: "485.7",
-        suffix: "k",
-      },
-      {
-        icon: "/assets/panel/icon_gdp@2x.png",
-        label: "YTD Growth",
-        value: "12.4",
-        suffix: "%",
-      },
-    ],
-    []
-  );
-
-  // Right panel data
-  const rightPersonnelData = useMemo(
-    () => [
-      { info: "Staff", count: 57, unit: "%" },
-      { info: "Visitors", count: 21.8, unit: "%" },
-      { info: "Contractors", count: 5.5, unit: "%" },
-      { info: "Security", count: 9.3, unit: "%" },
-      { info: "Maintenance", count: 6.4, unit: "%" },
-    ],
-    []
-  );
-
-  // Left panel custom content
-  const leftCustomContent: CustomContentConfig[] = useMemo(
-    () => [
-      {
-        id: "expenditure",
-        type: "traffic",
-        title: "Expenditure",
-        data: leftTrafficData,
-      },
-    ],
-    [leftTrafficData]
-  );
-
-  // Right panel custom content
-  const rightCustomContent: CustomContentConfig[] = useMemo(
-    () => [
-      {
-        id: "personnel",
-        type: "personnel",
-        title: "Personnel Overview",
-        data: rightPersonnelData,
-      },
-    ],
-    [rightPersonnelData]
-  );
-
-  // Left panel charts
-  const leftCharts: ChartConfig[] = useMemo(
-    () => [
-      {
-        id: "incidents-pie",
-        type: "pie",
-        title: "Incidents Reported by Category (YTD)",
-        data: pieSampleData(),
-      },
-      {
-        id: "incidents-bar",
-        type: "bar",
-        title: "Standard deviation of incidents reported by Category",
-        data: barSampleData(),
-      },
-    ],
-    []
-  );
-
-  // Right panel charts
-  const rightCharts: ChartConfig[] = useMemo(
-    () => [
-      {
-        id: "crowd-flow",
-        type: "line",
-        title: "Crowd Flow",
-        data: lineSampleData(),
-      },
-      {
-        id: "category-bar",
-        type: "bar",
-        title: "Add Label Here",
-        data: barSampleData2(),
-      },
-    ],
-    []
-  );
-
   return (
     <Box
       sx={{
@@ -127,18 +26,84 @@ const Page1: React.FC = () => {
       }}
     >
       {/* Left Panel */}
-      <Panel
-        side="left"
-        charts={leftCharts}
-        customContent={leftCustomContent}
-      />
+      <Panel side="left" delay={0}>
+        {/* Expenditure Custom Content */}
+        <CustomContent>
+          <Title>Expenditure</Title>
+          <Grid container spacing={2} className={styles.expenditureGrid}>
+            {expenditureData().map((item, index) => (
+              <Grid size={6} key={index}>
+                <Box className={styles.expenditureItem}>
+                  <IconBox width={30} height={30}>
+                    <img src={item.icon} alt={item.label} />
+                  </IconBox>
+                  <Box className={styles.expenditureContent}>
+                    <Typography className={styles.expenditureLabel}>
+                      {item.label}
+                    </Typography>
+                    <Box className={styles.expenditureValue}>
+                      {item.value}
+                      {item.suffix && (
+                        <Box className={styles.expenditureSuffix}>
+                          {item.suffix}
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </CustomContent>
+
+        {/* Charts */}
+        <NivoChart
+          type="pie"
+          title="Incidents Reported by Category (YTD)"
+          data={pieSampleData()}
+        />
+
+        <NivoChart
+          type="bar"
+          title="Standard deviation of incidents reported by Category"
+          data={barSampleData()}
+        />
+      </Panel>
 
       {/* Right Panel */}
-      <Panel
-        side="right"
-        charts={rightCharts}
-        customContent={rightCustomContent}
-      />
+      <Panel side="right" delay={0}>
+        {/* Personnel Custom Content */}
+        <CustomContent>
+          <Title>Personnel Overview</Title>
+          <Box className={styles.personnelContainer}>
+            <List className={styles.personnelList}>
+              {personnelData().map((item, index) => (
+                <ListItem key={index} className={styles.personnelItem}>
+                  <Box className={styles.personnelInfo}>
+                    <PersonIcon className={styles.personnelIcon} />
+                    <Typography className={styles.personnelLabel}>
+                      {item.info}
+                    </Typography>
+                  </Box>
+                  <Typography className={styles.personnelValue}>
+                    {item.count}
+                    <Typography
+                      component="span"
+                      className={styles.personnelUnit}
+                    >
+                      {item.unit}
+                    </Typography>
+                  </Typography>
+                </ListItem>
+              ))}
+            </List>
+          </Box>
+        </CustomContent>
+
+        {/* Charts */}
+        <NivoChart type="line" title="Crowd Flow" data={lineSampleData()} />
+        <NivoChart type="bar" title="Add Label Here" data={barSampleData2()} />
+      </Panel>
     </Box>
   );
 };

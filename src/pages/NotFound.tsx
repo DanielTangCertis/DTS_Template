@@ -1,6 +1,5 @@
 import React from "react";
 import { Box, styled } from "@mui/material";
-import { LayoutBox } from "../components/Layout";
 
 const NotFoundPageContainer = styled(Box)({
   width: "100%",

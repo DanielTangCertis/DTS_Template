@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Box } from "@mui/material";
 import { ResponsiveLine } from "@nivo/line";
 import { ResponsiveBar } from "@nivo/bar";
 import { ResponsivePie } from "@nivo/pie";
 import { ResponsiveScatterPlot } from "@nivo/scatterplot";
+import { Title } from "../Layout";
 
 // Use React's ComponentProps to get the exact prop types
 type LineChartProps = React.ComponentProps<typeof ResponsiveLine>;
@@ -39,11 +40,13 @@ interface ScatterPlotData {
   }>;
 }
 
-interface ChartProps {
+export interface ChartConfig {
+  id?: string;
+  type: "line" | "bar" | "pie" | "scatter";
+  title?: string;
   data: LineChartData[] | BarChartData[] | PieChartData[] | ScatterPlotData[];
-  width?: number; // Optional - if provided, uses fixed width
-  height?: number; // Optional - if provided, uses fixed height
-  type?: "line" | "bar" | "pie" | "scatter";
+  width?: number;
+  height?: number;
   theme?: "light" | "dark";
   interactive?: boolean;
 }
@@ -95,8 +98,9 @@ const isScatterData = (data: any): data is ScatterPlotData[] => {
   );
 };
 
-export const NivoChart: React.FC<ChartProps> = ({
+export const NivoChart: React.FC<ChartConfig> = ({
   data,
+  title,
   width,
   height,
   type = "line",
@@ -238,7 +242,6 @@ export const NivoChart: React.FC<ChartProps> = ({
           );
         }
 
-        // Define properly typed props for ResponsiveLine with required data
         const lineProps: Partial<LineChartProps> & { data: LineChartData[] } = {
           data: mutableData,
           theme: commonTheme,
@@ -316,13 +319,11 @@ export const NivoChart: React.FC<ChartProps> = ({
 
         const barData = mutableData as BarChartData[];
 
-        // Find numeric keys for the bar values
         const allKeys = barData.length > 0 ? Object.keys(barData[0]) : [];
         const numericKeys = allKeys.filter((key) =>
           barData.every((item) => typeof item[key] === "number")
         );
 
-        // Find a string key for indexBy (prefer common names)
         const indexKey =
           allKeys.find(
             (key) =>
@@ -351,7 +352,6 @@ export const NivoChart: React.FC<ChartProps> = ({
           );
         }
 
-        // Define properly typed props for ResponsiveBar with required data and keys
         const barProps: Partial<BarChartProps> & {
           data: BarChartData[];
           keys: string[];
@@ -410,7 +410,6 @@ export const NivoChart: React.FC<ChartProps> = ({
           );
         }
 
-        // Define properly typed props for ResponsivePie with required data
         const pieProps: Partial<PieChartProps> & { data: PieChartData[] } = {
           data: mutableData,
           theme: commonTheme,
@@ -459,7 +458,6 @@ export const NivoChart: React.FC<ChartProps> = ({
           );
         }
 
-        // Define properly typed props for ResponsiveScatterPlot with required data
         const scatterProps: Partial<ScatterChartProps> & {
           data: ScatterPlotData[];
         } = {
@@ -507,14 +505,27 @@ export const NivoChart: React.FC<ChartProps> = ({
   return (
     <Box
       sx={{
-        width: width ? `${width}px` : "100%",
-        height: height ? `${height}px` : "100%",
-        borderRadius: "8px",
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        minHeight: "200px",
+        marginBottom: "1.5rem",
         overflow: "hidden",
-        position: "relative", // Helps with Nivo positioning
       }}
     >
-      {renderChart()} {/* Nivo Responsive components handle their own sizing */}
+      {title && <Title>{title}</Title>}
+      <Box
+        sx={{
+          flex: 1,
+          width: width ? `${width}px` : "100%",
+          height: height ? `${height}px` : "100%",
+          borderRadius: "0.5rem",
+          overflow: "hidden",
+          position: "relative",
+        }}
+      >
+        {renderChart()}
+      </Box>
     </Box>
   );
 };

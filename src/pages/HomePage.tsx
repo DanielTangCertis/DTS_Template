@@ -2,7 +2,7 @@ import React from "react";
 import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { Box, styled } from "@mui/material";
-import { LayoutBox } from "../components/Layout";
+import { Panel } from "@/components/Panel/Panel";
 import { Title } from "../components/Layout";
 import { useHeader } from "../contexts/HeaderContext";
 import { useDigitalTwin } from "../contexts/DigitalTwinContext";
@@ -18,7 +18,7 @@ import {
 import { Header } from "../components/Header/Header";
 import { RouterNav } from "../components/RouterNav/RouterNav";
 import LayerTree from "../components/LayerTree/LayerTree";
-import Animation from "../components/ExplorerAnimations/ExplorerAnimations";
+import Animation from "../components/AnimatedTours/AnimatedTours";
 import { Weather } from "../components/Weather/Weather";
 
 const HomeContainer = styled(Box)({
@@ -69,6 +69,12 @@ const HomePage: React.FC = () => {
   const { state: headerState } = useHeader();
   const { state: digitalTwinState, dispatch } = useDigitalTwin();
   const { connectionState, connect, onDataUpdate } = useDigitalTwinService();
+
+  // Check if any overlay panel is active
+  const hasActiveHeaderItem =
+    headerState.showLayerTree ||
+    headerState.showAnimation ||
+    headerState.showWeather;
 
   useEffect(() => {
     const initConnection = async () => {
@@ -158,42 +164,58 @@ const HomePage: React.FC = () => {
       {headerState.showUI && (
         <>
           {headerState.showLayerTree && (
-            <LayoutBox side="left">
-              <Title>Layers</Title>
-              <ErrorBoundary componentName="LayerTree">
-                <LayerTree />
-              </ErrorBoundary>
-            </LayoutBox>
+            <Panel
+              side="left"
+              children={
+                <>
+                  <Title>Layers</Title>
+                  <ErrorBoundary componentName="LayerTree">
+                    <LayerTree />
+                  </ErrorBoundary>
+                </>
+              }
+            />
           )}
 
           {headerState.showAnimation && (
-            <LayoutBox side="left">
-              <Title>Animations</Title>
-              <AnimationErrorBoundary>
-                <Animation />
-              </AnimationErrorBoundary>
-            </LayoutBox>
+            <Panel
+              side="left"
+              children={
+                <>
+                  <Title>Animated Tours</Title>
+                  <AnimationErrorBoundary>
+                    <Animation />
+                  </AnimationErrorBoundary>
+                </>
+              }
+            />
           )}
         </>
       )}
 
       {/* Right side overlay for Weather */}
       {headerState.showUI && headerState.showWeather && (
-        <LayoutBox side="right">
-          <Title>Weather Control</Title>
-          <ErrorBoundary componentName="Weather">
-            <Weather />
-          </ErrorBoundary>
-        </LayoutBox>
+        <Panel
+          side="right"
+          children={
+            <>
+              <Title>Weather Control</Title>
+              <ErrorBoundary componentName="Weather">
+                <Weather />
+              </ErrorBoundary>
+            </>
+          }
+        />
+      )}
+      {/* Router navigation hidden when UI toggled off*/}
+      {headerState.showUI && (
+        <ErrorBoundary componentName="RouterNav">
+          <RouterNav />
+        </ErrorBoundary>
       )}
 
-      {/* Router navigation */}
-      <ErrorBoundary componentName="RouterNav">
-        <RouterNav />
-      </ErrorBoundary>
-
-      {/* Outlet for nested routes */}
-      <Outlet />
+      {/* Outlet for nested routes - hide when overlay panels are active */}
+      {headerState.showUI && !hasActiveHeaderItem && <Outlet />}
     </HomeContainer>
   );
 };
