@@ -67,7 +67,8 @@ const NavigationText = styled(Typography)({
   height: "40px",
   fontSize: "18px",
   letterSpacing: "5px",
-  fontFamily: "Oppo, serif",
+  fontFamily:
+    '"General Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"',
   color: "rgba(255, 255, 255, 0.8)",
   display: "flex",
   justifyContent: "center",

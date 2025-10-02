@@ -29,7 +29,7 @@ const WeatherContainer = styled(Box)({
   borderRadius: "2%",
   zIndex: 10,
   background: "rgba(0, 0, 0, 0.331)",
-  fontFamily: "Tencent, Arial, sans-serif",
+  fontFamily: "General Sans, Arial, sans-serif",
 });
 
 const WeatherCard = styled(Card)({

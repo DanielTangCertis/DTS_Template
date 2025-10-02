@@ -37,7 +37,8 @@ const LoadingText = styled(Typography)({
   color: "#ffffff",
   marginTop: "20px",
   fontSize: "16px",
-  fontFamily: "Oppo, Arial, sans-serif",
+  fontFamily:
+    '"General Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"',
 });
 
 interface LoadingSpinnerProps {

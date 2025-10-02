@@ -4,7 +4,7 @@ import { IconWrapper } from "../IconWrapper/IconWrapper";
 
 const TitleContainer = styled(Box)({
   position: "relative",
-  fontFamily: "Oppo, serif",
+  fontFamily: '"General Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"',
   fontWeight: 500,
   color: "#ffffff",
   display: "flex",

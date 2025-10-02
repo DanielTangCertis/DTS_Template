@@ -101,7 +101,7 @@
 
 .personnelValue {
   font-size: clamp(1rem, 3vw, 1.125rem); /* 16px - 18px responsive */
-  font-family: "PangMenZhengDao", Arial, sans-serif;
+  font-family: "General Sans", Arial, sans-serif;
   color: #00ffff;
   font-weight: bold;
   margin: 0;
