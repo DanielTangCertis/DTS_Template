@@ -1,13 +1,18 @@
 import { Box } from "@mui/material";
-import { lineSampleData2 } from "@/sampleData";
-import { Panel } from "../components/Panel/Panel";
-import { NivoChart } from "@/components/NivoChart/NivoChart";
-
 import {
   pieSampleData,
   lineSampleData,
+  lineSampleData2,
   barSampleData2,
 } from "@/sampleData";
+import {
+  facilityRadarData,
+  sparklineSampleData,
+  sparklineSampleData2,
+} from "@/components/MUIChart/MUIChartSampleData";
+import { Panel } from "../components/Panel/Panel";
+import { NivoChart } from "@/components/NivoChart/NivoChart";
+import { MUIChart } from "@/components/MUIChart/MUIChart";
 
 const Page3: React.FC = () => {
   return (
@@ -21,15 +26,11 @@ const Page3: React.FC = () => {
     >
       {/* Right Panel */}
       <Panel side="right" delay={0}>
-        <NivoChart
-          type="pie"
-          title="Incidents Reported by Category (YTD)"
-          data={pieSampleData()}
-        />
-        <NivoChart
-          type="line"
-          title="Energy Consumption"
-          data={lineSampleData2()}
+        <MUIChart type="radar" title="Facilities" data={facilityRadarData()} />
+        <MUIChart
+          type="sparkline"
+          title="Energy Consumption by Month"
+          data={sparklineSampleData2()}
         />
       </Panel>
 
