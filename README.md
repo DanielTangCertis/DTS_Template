@@ -81,7 +81,9 @@ graph LR
     B -- Streams Scene --> C
 ```
 ### RUNNING THE DIGITAL TWIN APPLICATION
-STEP 1: Set up the project on your machine
+
+#### STEP 1: Set up the project on your machine
+
 ```
 # Clone this repository
 $ git clone git@github.com: DanielTangCertis / DTS_Template.git
@@ -93,18 +95,18 @@ $ cd DTS_Template
 $ npm i
 ```
 
-STEP 2: Start the DTS Cloud service
+#### STEP 2: Start the DTS Cloud service  
 The DTS Cloud service streams the selected DTS Explorer project (.acp format) by exposing the host IP and Port specified in the DTS Cloud Console.
 The project .acp file must be available on the same machine where the DTS Cloud service is running.
 > [!IMPORTANT]
 > The host IP and Port specified on DTS Cloud must match the one specified in ac_conf.js for the connection to be established in step 2
 
-STEP 3:
-Start the web application
+#### STEP 3: Start the web application
 ```
 npm run dev
 ```
-ac.min.js will be run first before the React app, according to the order specified in index.html. It includes the code to initialize a websocket connection between the app and the active instance running on the DTS Cloud service.
+ac.min.js will be run first before the React app, according to the order specified in index.html.  
+It includes the code to initialize a websocket connection between the app and the active instance running on the DTS Cloud service.  
 By default, only 1 connection is allowed per instance. If more connections are required, will need to ask Freedo how to change the configuration.
 
 ## Tech Stack
