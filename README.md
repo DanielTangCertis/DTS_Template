@@ -53,32 +53,37 @@ graph LR
     %% 1. Define the first node (DTS ENGINE) with all its detailed content wrapped in quotes
     A("
         **DTS ENGINE**
-        Purpose: Convert a variety of 3D data into the .3DT format, Freedo's unified 3D format.
-        Inputs:
+        **Purpose**: Convert a variety of 3D data into the .3DT format, Freedo's unified 3D format.
+        **Inputs:**
         - BIM models (.RVT, .IFC...)
         - 3D models (.FBX, .OBJ...)
         - point clouds (.LAZ, .E57...)
         - GIS data (.GPKG, .SHP)
+        **Output:** .3DT File
     ")
 
     %% 2. Define the second node (DTS EXPLORER) with all its detailed content
     B("
         **DTS EXPLORER**
-        Purpose: Construct the 3D scene using imported .3DT files.
+        **Purpose:** Construct the 3D scene using imported .3DT files.
         *Other formats (3DTiles, .SHP) can be imported directly.*
-        Output: Creates a .pak file (3D resource library) using Unreal Engine with reusable models, materials, etc.
+        Input: .3DT Files, .pak resource library files that are created via Unreal Engine (contains materials, animated models, 3D UI and VFX etc.)
+        **Output:** Manually constructed 3D scene that can be streamed using the DTS Cloud service.
     ")
 
     %% 3. Define the third node (DTS CLOUD) with all its detailed content
     C("
         **DTS CLOUD**
-        Purpose: Stream the 3D scene via websocket to be displayed in a web application.
-        Note: Keeps track of websocket connections; only 1 is allowed by default per active instance.
+        **Purpose:** Stream the 3D scene via websocket to be displayed in a web application.
+        **Note:** Keeps track of websocket connections; only 1 is allowed by default per active instance.
     ")
 
     %% Define the explicit, left-to-right connections
     A -- Converts Data --> B
     B -- Streams Scene --> C
+    style A text-align:left
+    style B text-align:left
+    style C text-align:left
 ```
 ### RUNNING THE DIGITAL TWIN APPLICATION
 
