@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Fade } from "@mui/material";
-import { useDigitalTwin } from "../../contexts/DigitalTwinContext";
+import { useDigitalTwinContext } from "../../contexts/DigitalTwinContext";
 import { PanelErrorBoundary } from "../ErrorBoundary/ErrorBoundary";
 import styles from "./Panel.module.css";
 
@@ -18,7 +18,7 @@ export const Panel: React.FC<PanelProps> = ({
   width,
   delay = 0,
 }) => {
-  const { state: digitalTwinState } = useDigitalTwin();
+  const { state: digitalTwinState } = useDigitalTwinContext();
 
   // Don't render until digital twin player is ready
   if (!digitalTwinState.playerIsReady) {

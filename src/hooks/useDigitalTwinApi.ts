@@ -1,4 +1,3 @@
-// src/hooks/useDigitalTwinApi.ts
 import { useCallback, useRef } from "react";
 import { changeWeather, WeatherOptions } from "../utils/weatherUtils";
 import { FDApi } from "../types/digitalTwin.types";
@@ -13,6 +12,8 @@ export const useDigitalTwinApi = () => {
     apiRef.current = window.fdapi;
     return window.fdapi;
   }, []);
+  
+  var flightLoopTimer = null;
 
   // Layer Management
   const toggleLayerVisibility = useCallback(
@@ -152,6 +153,29 @@ export const useDigitalTwinApi = () => {
     }
   }, []);
 
+  /*CAMERA CONTROLS*/
+  // Orbit camera around the 3D scene
+  const startCameraOrbit = useCallback(async (location:number[], rotation:number[], distance:number, time:number) => {
+    try {
+      const api = ensureApiAvailable();
+      const flightLoop = () => {
+        api.camera.flyAround(location, rotation, distance, time);
+
+        // Schedule the NEXT loop iteration to start after the current one finishes.
+        flightLoopTimer = setTimeout(flightLoop, time * 1000);
+      };
+
+      // Start the very first iteration of the loop.
+      flightLoop();
+      console.log("starting camera orbit...");
+    } catch (error) {
+      console.error("Failed to start camera orbit:", error);
+      throw error;
+    }
+  }, [ensureApiAvailable]);
+
+  // const stopCameraOrbit = useCallback(async );
+
   return {
     // Layer Management
     toggleLayerVisibility,
@@ -169,5 +193,8 @@ export const useDigitalTwinApi = () => {
     setDarkMode,
     resetWeather,
     updateWeather,
+
+    // Camera Controls
+    startCameraOrbit
   };
 };

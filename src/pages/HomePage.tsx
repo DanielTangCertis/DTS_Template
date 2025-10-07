@@ -5,7 +5,7 @@ import { Box, styled } from "@mui/material";
 import { Panel } from "@/components/Panel/Panel";
 import { Title } from "../components/Layout";
 import { useHeader } from "../contexts/HeaderContext";
-import { useDigitalTwin } from "../contexts/DigitalTwinContext";
+import { useDigitalTwinContext } from "../contexts/DigitalTwinContext";
 import ErrorBoundary from "../components/ErrorBoundary/ErrorBoundary";
 import { AnimationErrorBoundary } from "../components/ErrorBoundary/ErrorBoundary";
 
@@ -67,7 +67,7 @@ const ConnectionStatusIndicator = styled(Box)<{ status: string }>(
 
 const HomePage: React.FC = () => {
   const { state: headerState } = useHeader();
-  const { state: digitalTwinState, dispatch } = useDigitalTwin();
+  const { state: digitalTwinState, dispatch } = useDigitalTwinContext();
   const { connectionState, connect, onDataUpdate } = useDigitalTwinService();
 
   // Check if any overlay panel is active

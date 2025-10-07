@@ -5,6 +5,7 @@ import { HeaderProvider } from "./contexts/HeaderContext";
 import { DigitalTwinProvider } from "./contexts/DigitalTwinContext";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import DigitalTwinLoadingManager from "./components/DigitalTwinLoadingManager/DigitalTwinLoadingManager";
+import InitializationHandler from "./components/InitializationHandler/InitializationHandler";
 
 // Pages
 import HomePage from "./pages/HomePage";
@@ -45,6 +46,7 @@ const App: React.FC = () => {
         <HeaderProvider>
           <Router>
             <ErrorBoundary componentName="App" showRetry={false}>
+              <InitializationHandler/>
               <Routes>
                 <Route path="/" element={<HomePage />}>
                   <Route path="page1" element={<Page1 />} />

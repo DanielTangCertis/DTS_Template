@@ -29,7 +29,6 @@ export interface AnimationListItem {
   name: string;
 }
 
-// Add to digitalTwin.types.ts
 export interface LayerTreeResponse {
   infotree: LayerTreeApiItem[];
 }
@@ -54,6 +53,7 @@ export interface FDApi {
     getAnimationImage: (name: string) => Promise<{ image: string }>;
     playAnimation: (id: string | number) => Promise<void>;
     stopAnimation: () => Promise<void>;
+    flyAround: (location:number[], rotation:number[], distance:number, time:number) => Promise<void>;
   };
   weather: {
     setDateTime: (

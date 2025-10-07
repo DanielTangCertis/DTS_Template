@@ -4,7 +4,7 @@ import { SimpleTreeView, TreeItem } from "@mui/x-tree-view";
 import { ExpandMore, ChevronRight } from "@mui/icons-material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
-import { useDigitalTwin } from "@/contexts/DigitalTwinContext";
+import { useDigitalTwinContext } from "@/contexts/DigitalTwinContext";
 import { useDigitalTwinApi } from "@/hooks/useDigitalTwinApi";
 
 const TreeContainer = styled(Box)({
@@ -64,7 +64,7 @@ const VisibilityButton = styled(IconButton)({
   },
 });
 
-interface LayerTreeItem {
+export interface LayerTreeItem {
   id: string;
   label: string;
   index: number;
@@ -108,7 +108,7 @@ const formatInfoTree = (data: any[]): LayerTreeItem[] => {
 };
 
 const LayerTree: React.FC = () => {
-  const { state } = useDigitalTwin();
+  const { state } = useDigitalTwinContext();
   const [expanded, setExpanded] = useState<string[]>([]);
   const [visibilityState, setVisibilityState] = useState<{ [key: string]: boolean }>({});
   

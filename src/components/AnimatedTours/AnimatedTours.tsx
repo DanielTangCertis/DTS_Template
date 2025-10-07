@@ -9,7 +9,7 @@ import {
   styled,
   Grid,
 } from "@mui/material";
-import { useDigitalTwin } from "../../contexts/DigitalTwinContext";
+import { useDigitalTwinContext} from "../../contexts/DigitalTwinContext";
 import { useHeader } from "../../contexts/HeaderContext";
 import { digitalTwinService } from "../../services/DigitalTwinService";
 
@@ -59,14 +59,14 @@ const AnimationText = styled(Typography)({
   padding: "8px",
 });
 
-interface AnimationItem {
+export interface AnimationItem {
   id: string | number;
   name: string;
   img: string;
 }
 
 const AnimatedTours: React.FC = () => {
-  const { state: digitalTwinState } = useDigitalTwin();
+  const { state: digitalTwinState } = useDigitalTwinContext();
   const { state: headerState } = useHeader();
 
   useEffect(() => {
