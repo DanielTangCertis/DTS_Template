@@ -8,6 +8,8 @@ interface DigitalTwinState {
   animationList: AnimationItem[];
   isCameraInOrbit: boolean;
   coordsForCameraOrbit: [number, number, number];
+  xrayColor: [number, number, number, number];
+  white: [number, number, number, number];
 }
 
 // Export the action type so digitalTwinUtils can use it
@@ -26,7 +28,10 @@ const initialState: DigitalTwinState = {
   layerTree: [],
   animationList: [],
   isCameraInOrbit: true,
-  coordsForCameraOrbit: [34518., 33786.525, 2.95] //[34532, 33716.5, 60]
+  coordsForCameraOrbit: [34518, 33786.525, 2.95], //[34532, 33716.5, 60]
+  xrayColor: [0, 0, 1, 0.25], //blue
+  white: [1, 1, 1, 1],
+  // xrayColor: [0.29019607843137253, 0.2725490196078431, 1, 0.005], //blue
 };
 
 const digitalTwinReducer = (

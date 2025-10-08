@@ -43,6 +43,25 @@ export interface AnimationImageResponse {
 
 // Digital Twin API Interface
 export interface FDApi {
+  tileLayer: {
+    focus: (
+      ids: string[] | string,
+      distance?: number,
+      flyTime?: number,
+      rotation?: number[]
+    ) => Promise<void>;
+    enableXRay: (ids: string[] | string, color: number[]) => Promise<void>;
+    disableXRay: (ids: string[] | string) => Promise<void>;
+    setStyle: (
+      tileLayerIds: string[] | string,
+      style: number,
+      color: number[],
+      saturation?: number,
+      brightness?: number,
+      contrast?: number,
+      contrastBase?: number
+    ) => Promise<void>;
+  };
   infoTree: {
     get: () => Promise<{ infotree: LayerTreeApiItem[] }>;
     show: (id: string) => Promise<void>;
@@ -53,7 +72,12 @@ export interface FDApi {
     getAnimationImage: (name: string) => Promise<{ image: string }>;
     playAnimation: (id: string | number) => Promise<void>;
     stopAnimation: () => Promise<void>;
-    flyAround: (location:number[], rotation:number[], distance:number, time:number) => Promise<void>;
+    flyAround: (
+      location: number[],
+      rotation: number[],
+      distance: number,
+      time: number
+    ) => Promise<void>;
   };
   weather: {
     setDateTime: (

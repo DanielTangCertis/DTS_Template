@@ -109,10 +109,18 @@ const formatInfoTree = (data: any[]): LayerTreeItem[] => {
 
 const LayerTree: React.FC = () => {
   const { state } = useDigitalTwinContext();
+  const { xrayColor, white } = state;
   const [expanded, setExpanded] = useState<string[]>([]);
-  const [visibilityState, setVisibilityState] = useState<{ [key: string]: boolean }>({});
-  
-  const { toggleLayerVisibility } = useDigitalTwinApi();
+  const [visibilityState, setVisibilityState] = useState<{
+    [key: string]: boolean;
+  }>({});
+
+  const {
+    toggleLayerVisibility,
+    setStyleForTreeLayers,
+    setXrayForLayers,
+    focusOnTileLayer,
+  } = useDigitalTwinApi();
 
   const layerTree = formatInfoTree(state.layerTree);
 
@@ -120,7 +128,7 @@ const LayerTree: React.FC = () => {
   useEffect(() => {
     const initVisibility = (nodes: LayerTreeItem[]) => {
       const newState: { [key: string]: boolean } = {};
-      
+
       const traverse = (items: LayerTreeItem[]) => {
         items.forEach((item) => {
           newState[item.index.toString()] = item.visibility;
@@ -129,25 +137,82 @@ const LayerTree: React.FC = () => {
           }
         });
       };
-      
+
       traverse(nodes);
       return newState;
     };
 
     setVisibilityState(initVisibility(layerTree));
-    
+
     // Expand all top-level parent nodes by default
     if (layerTree.length > 0) {
-      const topLevelIds = layerTree.map(node => node.index.toString());
+      const topLevelIds = layerTree.map((node) => node.index.toString());
       setExpanded(topLevelIds);
     }
   }, [state.layerTree]);
 
-  const handleToggle = (
+  const handleExpandToggle = (
     event: React.SyntheticEvent | null,
     nodeIds: string[]
   ) => {
     setExpanded(nodeIds);
+  };
+
+  // focus on selected layer and set all others to xray mode
+  // const handleSelectLayer = async (
+  //   event: React.MouseEvent,
+  //   node: LayerTreeItem
+  // ) => {
+  //   event.stopPropagation(); // Prevent tree expansion when clicking icon
+  //   const selectedNodeId = node.id; // id of the selected tilelayer
+  //   const topLevelIds = layerTree.map((node) => node.id);
+  //   let layerIdsToXray = topLevelIds.filter((id) => id !== selectedNodeId);
+
+  //   console.log("Setting X-ray for layers:", layerIdsToXray);
+  //   console.log("X-ray color:", xrayColor); // This should show your color array
+
+  //   await setStyleForTreeLayers(layerIdsToXray, xrayColor);
+  //   await focusOnTileLayer(selectedNodeId, 0, 1); // 0 means autocalculate distance
+  // };
+
+  const handleSelectLayer = async (
+    event: React.MouseEvent,
+    node: LayerTreeItem
+  ) => {
+    event.stopPropagation();
+    const selectedNodeId = node.id;
+
+    // Helper function to get all layer IDs from the entire tree
+    const getAllLayerIds = (nodes: LayerTreeItem[]): string[] => {
+      const ids: string[] = [];
+
+      const traverse = (item: LayerTreeItem) => {
+        ids.push(item.id);
+        if (item.children) {
+          item.children.forEach((child) => traverse(child));
+        }
+      };
+
+      nodes.forEach((node) => traverse(node));
+      return ids;
+    };
+
+    // Get all layer IDs from the entire tree
+    const allLayerIds = getAllLayerIds(layerTree);
+
+    // Filter out the selected layer
+    const layerIdsToXray = allLayerIds.filter(
+      (id) => id !== selectedNodeId && id !== "ProjectTree_Root"
+    );
+
+    console.log("Setting X-ray for layers:", layerIdsToXray);
+    console.log("X-ray color:", xrayColor);
+
+    await setXrayForLayers(true, layerIdsToXray, xrayColor);
+    await setXrayForLayers(false, selectedNodeId, undefined);
+    // await setStyleForTreeLayers(layerIdsToXray, xrayColor);
+    // await setStyleForTreeLayers(selectedNodeId, white);
+    await focusOnTileLayer(selectedNodeId, 50, 1, [0, 120, 0]); // setting distance to 0 will make it auto-calculate.
   };
 
   const handleVisibilityToggle = async (
@@ -155,7 +220,7 @@ const LayerTree: React.FC = () => {
     node: LayerTreeItem
   ) => {
     event.stopPropagation(); // Prevent tree expansion when clicking icon
-    
+
     const nodeId = node.index.toString();
     const currentVisibility = visibilityState[nodeId];
     const newVisibility = !currentVisibility;
@@ -163,18 +228,18 @@ const LayerTree: React.FC = () => {
     // Helper function to get all descendant node IDs
     const getAllDescendants = (parentNode: LayerTreeItem): string[] => {
       const descendants: string[] = [];
-      
+
       const traverse = (node: LayerTreeItem) => {
         descendants.push(node.index.toString());
         if (node.children) {
-          node.children.forEach(child => traverse(child));
+          node.children.forEach((child) => traverse(child));
         }
       };
-      
+
       if (parentNode.children) {
-        parentNode.children.forEach(child => traverse(child));
+        parentNode.children.forEach((child) => traverse(child));
       }
-      
+
       return descendants;
     };
 
@@ -184,19 +249,19 @@ const LayerTree: React.FC = () => {
     // Update visibility for the node and all its descendants
     setVisibilityState((prev) => {
       const updated = { ...prev, [nodeId]: newVisibility };
-      
+
       // Set all descendants to the same visibility as parent
-      descendantIds.forEach(id => {
+      descendantIds.forEach((id) => {
         updated[id] = newVisibility;
       });
-      
+
       return updated;
     });
 
     try {
       // Toggle the main node
       await toggleLayerVisibility(node.id, newVisibility);
-      
+
       // Also toggle all descendants
       const toggleDescendants = async (parentNode: LayerTreeItem) => {
         if (parentNode.children) {
@@ -208,19 +273,19 @@ const LayerTree: React.FC = () => {
           }
         }
       };
-      
+
       await toggleDescendants(node);
     } catch (error) {
       console.error("Error toggling layer visibility:", error);
       // Revert on error
       setVisibilityState((prev) => {
         const reverted = { ...prev, [nodeId]: currentVisibility };
-        
+
         // Revert descendants too
-        descendantIds.forEach(id => {
+        descendantIds.forEach((id) => {
           reverted[id] = prev[id]; // Use original state
         });
-        
+
         return reverted;
       });
     }
@@ -244,19 +309,21 @@ const LayerTree: React.FC = () => {
                 {isVisible ? (
                   <VisibilityIcon sx={{ fontSize: "clamp(16px, 2vw, 24px)" }} />
                 ) : (
-                  <VisibilityOffOutlinedIcon sx={{ fontSize: "clamp(16px, 2vw, 24px)" }} />
+                  <VisibilityOffOutlinedIcon
+                    sx={{ fontSize: "clamp(16px, 2vw, 24px)" }}
+                  />
                 )}
               </VisibilityButton>
-              <span 
-                style={{ 
-                  color: node.color, 
+              <span
+                style={{
+                  color: node.color,
                   cursor: "pointer",
                   userSelect: "none",
                   fontSize: "clamp(0.75rem, 1.5vw, 1rem)",
                   opacity: isVisible ? 1 : 0.25,
-                  transition: "opacity 0.2s ease"
+                  transition: "opacity 0.2s ease",
                 }}
-                onClick={(e) => handleVisibilityToggle(e, node)}
+                onClick={(e) => handleSelectLayer(e, node)}
               >
                 {node.label}
               </span>
@@ -278,7 +345,7 @@ const LayerTree: React.FC = () => {
             expandIcon: ChevronRight,
           }}
           expandedItems={expanded}
-          onExpandedItemsChange={handleToggle}
+          onExpandedItemsChange={handleExpandToggle}
         >
           {renderTreeItems(layerTree)}
         </StyledTreeView>

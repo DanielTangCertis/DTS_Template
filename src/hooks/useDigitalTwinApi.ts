@@ -12,10 +12,27 @@ export const useDigitalTwinApi = () => {
     apiRef.current = window.fdapi;
     return window.fdapi;
   }, []);
-  
-  var flightLoopTimer = null;
 
-  // Layer Management
+  // tileLayer: focus on tileLayer
+  const focusOnTileLayer = useCallback(
+    async (
+      ids: string[] | string,
+      distance?: number,
+      flyTime?: number,
+      rotation?: number[]
+    ) => {
+      try {
+        const api = ensureApiAvailable();
+        await api.tileLayer.focus(ids, distance, flyTime, rotation);
+      } catch (error) {
+        console.error("Failed to toggle layer visibility:", error);
+        throw error;
+      }
+    },
+    [ensureApiAvailable]
+  );
+
+  // infoTree: Layer Management
   const toggleLayerVisibility = useCallback(
     async (id: string, visible: boolean) => {
       try {
@@ -34,7 +51,49 @@ export const useDigitalTwinApi = () => {
     [ensureApiAvailable]
   );
 
-  // Animation Control
+  // tileLayer: Configure styles for specified layers
+  const setStyleForTreeLayers = useCallback(
+    async (ids: string[] | string, color: number[]) => {
+      try {
+        const api = ensureApiAvailable();
+        await api.tileLayer.setStyle(ids, 1, color); //style 0 for default, 1 for x-ray
+        // await api.tileLayer.enableXRay(ids, color);
+        console.log("xray enabled for:", ids);
+      } catch (error) {
+        console.error("Failed to toggle xray mode:", error);
+        throw error;
+      }
+    },
+    [ensureApiAvailable]
+  );
+
+  // tileLayer: toggle xray for specified layers
+  const setXrayForLayers = useCallback(
+    async (
+      xrayState: boolean,
+      ids: string[] | string,
+      color: number[] | undefined
+    ) => {
+      try {
+        const api = ensureApiAvailable();
+        if (xrayState && color !== undefined) {
+          //enable if true and vice versa
+          await api.tileLayer.enableXRay(ids, color);
+          console.log("xray Enabled for:", ids);
+        } else {
+          await api.tileLayer.disableXRay(ids);
+          console.log("xray Disabled for:", ids);
+        }
+        // await api.tileLayer.enableXRay(ids, color);
+      } catch (error) {
+        console.error("Failed to toggle xray mode:", error);
+        throw error;
+      }
+    },
+    [ensureApiAvailable]
+  );
+
+  // camera: Animation Control
   const playAnimation = useCallback(
     async (id: string | number) => {
       try {
@@ -49,6 +108,36 @@ export const useDigitalTwinApi = () => {
     [ensureApiAvailable]
   );
 
+  // camera: Orbit camera around the 3D scene
+  const startCameraOrbit = useCallback(
+    async (
+      location: number[],
+      rotation: number[],
+      distance: number,
+      time: number
+    ) => {
+      try {
+        const api = ensureApiAvailable();
+        const flightLoop = () => {
+          api.camera.flyAround(location, rotation, distance, time);
+
+          // Schedule the NEXT loop iteration to start after the current one finishes.
+          setTimeout(flightLoop, time * 1000);
+        };
+
+        // Start the very first iteration of the loop.
+        flightLoop();
+        console.log("starting camera orbit...");
+      } catch (error) {
+        console.error("Failed to start camera orbit:", error);
+        throw error;
+      }
+    },
+    [ensureApiAvailable]
+  );
+
+  // const stopCameraOrbit = useCallback(async );
+
   const stopAnimation = useCallback(async () => {
     try {
       const api = ensureApiAvailable();
@@ -60,7 +149,7 @@ export const useDigitalTwinApi = () => {
     }
   }, [ensureApiAvailable]);
 
-  // Player Control
+  // reset: Player Control
   const resetPlayer = useCallback(
     async (flags: number = 7) => {
       try {
@@ -75,6 +164,7 @@ export const useDigitalTwinApi = () => {
     [ensureApiAvailable]
   );
 
+  // settings: UI visibility
   const setMainUIVisibility = useCallback(
     (visible: boolean) => {
       try {
@@ -88,7 +178,7 @@ export const useDigitalTwinApi = () => {
     [ensureApiAvailable]
   );
 
-  // Weather Control
+  // weather: Weather Control
   const setWeatherTime = useCallback(
     async (hour: number, minute: number) => {
       try {
@@ -153,32 +243,12 @@ export const useDigitalTwinApi = () => {
     }
   }, []);
 
-  /*CAMERA CONTROLS*/
-  // Orbit camera around the 3D scene
-  const startCameraOrbit = useCallback(async (location:number[], rotation:number[], distance:number, time:number) => {
-    try {
-      const api = ensureApiAvailable();
-      const flightLoop = () => {
-        api.camera.flyAround(location, rotation, distance, time);
-
-        // Schedule the NEXT loop iteration to start after the current one finishes.
-        flightLoopTimer = setTimeout(flightLoop, time * 1000);
-      };
-
-      // Start the very first iteration of the loop.
-      flightLoop();
-      console.log("starting camera orbit...");
-    } catch (error) {
-      console.error("Failed to start camera orbit:", error);
-      throw error;
-    }
-  }, [ensureApiAvailable]);
-
-  // const stopCameraOrbit = useCallback(async );
-
   return {
     // Layer Management
     toggleLayerVisibility,
+    setStyleForTreeLayers,
+    setXrayForLayers,
+    focusOnTileLayer,
 
     // Animation Control
     playAnimation,
@@ -195,6 +265,6 @@ export const useDigitalTwinApi = () => {
     updateWeather,
 
     // Camera Controls
-    startCameraOrbit
+    startCameraOrbit,
   };
 };

@@ -9,8 +9,7 @@ const InitializationHandler: React.FC = () => {
   useEffect(() => {
     if (playerIsReady) {
       //start orbit by default
-      startCameraOrbit(coordsForCameraOrbit, [-30, 90, 0], 300
-        , 90) // 90 seconds per rotation
+      startCameraOrbit(coordsForCameraOrbit, [-15, 90, 0], 350, 90) // 90 seconds per rotation
         .then(() => {
           dispatch({ type: "SET_CAMERA_ORBIT", payload: true });
         })
