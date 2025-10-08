@@ -6,6 +6,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import { useDigitalTwinContext } from "@/contexts/DigitalTwinContext";
 import { useDigitalTwinApi } from "@/hooks/useDigitalTwinApi";
+import { useHeader } from "@/contexts/HeaderContext";
 
 const TreeContainer = styled(Box)({
   height: "100%",
@@ -76,9 +77,40 @@ export interface LayerTreeItem {
   children?: LayerTreeItem[];
 }
 
+// Mapping of technical layer names to user-friendly names
+const layerNameMapping: Record<string, string> = {
+  HX_CG_3DM_PLGN_RVT22: "SECURITY, NORTH",
+  HX_CG_3DM_PLGS_RVT22: "SECURITY, SOUTH",
+  HX_EL_3DM_PLGN_RVT22: "ELECTRICAL, NORTH",
+  HX_EL_3DM_PLGS_RVT22: "ELECTRICAL, SOUTH",
+  HX_IR_3DM_PLGS_RVT22: "IRRIGATION, SOUTH",
+  HX_MV_3DM_PLGN_RVT22: "ACMV, NORTH",
+  HX_MV_3DM_PLGS_RVT22: "ACMV, SOUTH",
+  HX_PL_3DM_PLGS_RVT22: "PLUMBING, SOUTH",
+  HX_PLU_3DM_PLGN_RVT22: "PLUMBING, NORTH",
+  HX_SAN_3DM_PLGN_RVT22: "SANITARY, NORTH",
+  HX_SAN_3DM_PLGS_RVT22: "SANITARY, SOUTH",
+  HX_ST_3DM_PLGN_RVT22: "STRUCTURAL, NORTH",
+  HX_ST_3DM_PLGS_RVT22: "STRUCTURAL, SOUTH",
+  HX_SW_3DM_PLGS_RVT22: "SIPHONIC RWDP, SOUTH",
+  SCH_LIFT_3DM_PLGN_RVT22: "LIFTS, NORTH",
+  SCH_LIFT_3DM_PLGS_RVT22: "LIFTS, SOUTH",
+  HX_FC_3DM_PLGN_RVT22: "FACADE, NORTH",
+  HX_FC_3DM_PLGS_RVT22: "FACADE, SOUTH",
+  HX_FP_3DM_PLGN_RVT22: "FIRE PROTECTION, NORTH",
+  HX_FP_3DM_PLGS_RVT22: "FIRE PROTECTION, SOUTH",
+  HX_AR_3DM_PLGN_RVT22: "ARCHITECTURAL MODEL, NORTH",
+  HX_AR_3DM_PLGS_RVT22: "ARCHITECTURAL MODEL, SOUTH",
+};
+
+// Helper function to get display name
+const getDisplayName = (technicalName: string): string => {
+  return layerNameMapping[technicalName] || technicalName;
+};
+
 const formatInfoTree = (data: any[]): LayerTreeItem[] => {
   const fixedArr = data.map((item) => ({
-    label: item.name,
+    label: getDisplayName(item.name),
     id: item.iD || item.id,
     visibility: item.visiblity !== undefined ? item.visiblity : item.visibility,
     index: item.index,
@@ -109,11 +141,13 @@ const formatInfoTree = (data: any[]): LayerTreeItem[] => {
 
 const LayerTree: React.FC = () => {
   const { state } = useDigitalTwinContext();
-  const { xrayColor, white } = state;
+  const { state: headerState } = useHeader();
+  const { xrayColor } = state;
   const [expanded, setExpanded] = useState<string[]>([]);
   const [visibilityState, setVisibilityState] = useState<{
     [key: string]: boolean;
   }>({});
+  const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
 
   const {
     toggleLayerVisibility,
@@ -151,6 +185,28 @@ const LayerTree: React.FC = () => {
     }
   }, [state.layerTree]);
 
+  // Clear selection when layer tree is hidden
+  useEffect(() => {
+    if (!headerState.showLayerTree) {
+      setSelectedLayerId(null);
+    }
+  }, [headerState.showLayerTree]);
+
+  // Helper function to get all layer IDs from the entire tree
+  const getAllLayerIds = (nodes: LayerTreeItem[]): string[] => {
+    const ids: string[] = [];
+
+    const traverse = (item: LayerTreeItem) => {
+      ids.push(item.id);
+      if (item.children) {
+        item.children.forEach((child) => traverse(child));
+      }
+    };
+
+    nodes.forEach((node) => traverse(node));
+    return ids;
+  };
+
   const handleExpandToggle = (
     event: React.SyntheticEvent | null,
     nodeIds: string[]
@@ -158,44 +214,12 @@ const LayerTree: React.FC = () => {
     setExpanded(nodeIds);
   };
 
-  // focus on selected layer and set all others to xray mode
-  // const handleSelectLayer = async (
-  //   event: React.MouseEvent,
-  //   node: LayerTreeItem
-  // ) => {
-  //   event.stopPropagation(); // Prevent tree expansion when clicking icon
-  //   const selectedNodeId = node.id; // id of the selected tilelayer
-  //   const topLevelIds = layerTree.map((node) => node.id);
-  //   let layerIdsToXray = topLevelIds.filter((id) => id !== selectedNodeId);
-
-  //   console.log("Setting X-ray for layers:", layerIdsToXray);
-  //   console.log("X-ray color:", xrayColor); // This should show your color array
-
-  //   await setStyleForTreeLayers(layerIdsToXray, xrayColor);
-  //   await focusOnTileLayer(selectedNodeId, 0, 1); // 0 means autocalculate distance
-  // };
-
   const handleSelectLayer = async (
     event: React.MouseEvent,
     node: LayerTreeItem
   ) => {
     event.stopPropagation();
     const selectedNodeId = node.id;
-
-    // Helper function to get all layer IDs from the entire tree
-    const getAllLayerIds = (nodes: LayerTreeItem[]): string[] => {
-      const ids: string[] = [];
-
-      const traverse = (item: LayerTreeItem) => {
-        ids.push(item.id);
-        if (item.children) {
-          item.children.forEach((child) => traverse(child));
-        }
-      };
-
-      nodes.forEach((node) => traverse(node));
-      return ids;
-    };
 
     // Get all layer IDs from the entire tree
     const allLayerIds = getAllLayerIds(layerTree);
@@ -213,6 +237,9 @@ const LayerTree: React.FC = () => {
     // await setStyleForTreeLayers(layerIdsToXray, xrayColor);
     // await setStyleForTreeLayers(selectedNodeId, white);
     await focusOnTileLayer(selectedNodeId, 50, 1, [0, 120, 0]); // setting distance to 0 will make it auto-calculate.
+
+    // Update selected layer state
+    setSelectedLayerId(selectedNodeId);
   };
 
   const handleVisibilityToggle = async (
@@ -295,6 +322,7 @@ const LayerTree: React.FC = () => {
     return nodes.map((node) => {
       const nodeId = node.index.toString();
       const isVisible = visibilityState[nodeId] ?? node.visibility;
+      const isSelected = selectedLayerId === node.id; // Check if this layer is selected
 
       return (
         <TreeItem
@@ -316,12 +344,13 @@ const LayerTree: React.FC = () => {
               </VisibilityButton>
               <span
                 style={{
-                  color: node.color,
+                  color: isSelected ? "#000000" : node.color,
                   cursor: "pointer",
                   userSelect: "none",
                   fontSize: "clamp(0.75rem, 1.5vw, 1rem)",
                   opacity: isVisible ? 1 : 0.25,
                   transition: "opacity 0.2s ease",
+                  backgroundColor: isSelected ? "#7afafe" : "transparent",
                 }}
                 onClick={(e) => handleSelectLayer(e, node)}
               >
