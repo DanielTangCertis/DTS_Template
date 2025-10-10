@@ -10,6 +10,7 @@ import {
   AnimationListResponse,
   AnimationImageResponse,
   PlayerConfig,
+  AlertCardListener,
 } from "../types/digitalTwin.types";
 
 export enum ConnectionStatus {
@@ -173,7 +174,8 @@ class DigitalTwinService {
     switch (eventData.eventtype) {
       case "LeftMouseButtonClick":
         //markers
-        if (eventData.Type == "marker") {
+        if (eventData.Type == "marker" && eventData.Id) {
+          const markerKey = eventData.Id; // e.g., "alert0", "alert1", etc
           let mouseCoords: number[] = eventData.MouseClickPoint;
           try {
             let response = await this.safeApiCall(() => {
@@ -186,9 +188,13 @@ class DigitalTwinService {
             if (response.result === 0 && response.screenPosition) {
               const [screenX, screenY] = response.screenPosition;
               console.log(`Screen coordinates: x=${screenX}, y=${screenY}`);
+              console.log(`Alert marker key: ${markerKey}`);
 
-              // Create react component at the location (screenX, screenY)
-              // ...
+              // Notify listeners to show the alert card
+              this.notifyAlertCardListeners(markerKey, {
+                x: screenX,
+                y: screenY,
+              });
             }
           } catch (error) {
             console.error(
@@ -199,6 +205,27 @@ class DigitalTwinService {
         }
         break;
     }
+  }
+
+  private alertCardListeners: Set<AlertCardListener> = new Set();
+
+  onAlertCardShow(listener: AlertCardListener): () => void {
+    this.alertCardListeners.add(listener);
+    return () => this.alertCardListeners.delete(listener);
+  }
+
+  // Update the notify method signature
+  private notifyAlertCardListeners(
+    alertKey: string,
+    position: { x: number; y: number }
+  ): void {
+    this.alertCardListeners.forEach((listener) => {
+      try {
+        listener(alertKey, position);
+      } catch (error) {
+        console.error("Error in alert card listener:", error);
+      }
+    });
   }
 
   // Enhanced disconnect with console restoration
@@ -558,7 +585,8 @@ export const useDigitalTwinService = () => {
     stopAnimation: digitalTwinService.stopAnimation.bind(digitalTwinService),
     toggleLayer: digitalTwinService.toggleLayer.bind(digitalTwinService),
     onDataUpdate: digitalTwinService.onDataUpdate.bind(digitalTwinService),
-    // Helper methods for UI components
+    onAlertCardShow: digitalTwinService.onAlertCardShow.bind(digitalTwinService),
+    // Helper methods
     getStatusMessage: () => digitalTwinService.getStatusMessage(),
     getElapsedTime: () => digitalTwinService.getElapsedTime(),
   };

@@ -57,6 +57,27 @@ export interface Coordinates {
   z: number;
 }
 
+export enum AlertStatus {
+  UNRESOLVED = "UNRESOLVED",
+  RESOLVING = "RESOLVING",
+}
+
+export interface AlertData {
+  entityId: string;
+  title: string;
+  status: AlertStatus;
+  location: Coordinates;
+}
+
+export interface AlertsCollection {
+  [alertKey: string]: AlertData;
+}
+
+export type AlertCardListener = (
+  alertKey: string,
+  position: { x: number; y: number }
+) => void;
+
 // Digital Twin API Interface
 export interface FDApi {
   tileLayer: {
@@ -116,11 +137,16 @@ export interface FDApi {
   };
   marker: {
     clear: () => Promise<void>;
-    add: (...args: any[]) => Promise<void>
+    add: (...args: any[]) => Promise<void>;
   };
-  coord: { //https://sdk.freedo3d.com/doc/api/Coord.html
-    world2Screen: (x:number,y:number,z:number) => Promise<World2ScreenResponse>; //screen coordinates
-  }
+  coord: {
+    //https://sdk.freedo3d.com/doc/api/Coord.html
+    world2Screen: (
+      x: number,
+      y: number,
+      z: number
+    ) => Promise<World2ScreenResponse>; //screen coordinates
+  };
 }
 
 // Global Window Interface Extensions

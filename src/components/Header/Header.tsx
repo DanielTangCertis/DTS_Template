@@ -57,7 +57,7 @@ const TimeContainer = styled(Box)({
   right: "20px",
   color: "rgba(255, 255, 255, 0.8)",
   fontSize: "16px",
-  fontFamily: "SJyunhei, serif",
+  fontFamily: "General Sans, Arial, sans-serif",
 });
 
 const FloatingToggle = styled(Box)(({ theme }) => ({

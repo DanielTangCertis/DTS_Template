@@ -6,6 +6,7 @@ import { DigitalTwinProvider } from "./contexts/DigitalTwinContext";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import DigitalTwinLoadingManager from "./components/DigitalTwinLoadingManager/DigitalTwinLoadingManager";
 import InitializationHandler from "./components/InitializationHandler/InitializationHandler";
+import { AlertCardContainer } from "@/components/Alerts/AlertCardContainer";
 
 // Pages
 import HomePage from "./pages/HomePage";
@@ -39,6 +40,7 @@ const darkTheme = createTheme({
 });
 
 const App: React.FC = () => {
+  
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
@@ -59,6 +61,7 @@ const App: React.FC = () => {
               <DigitalTwinLoadingManager />
             </ErrorBoundary>
           </Router>
+          <AlertCardContainer />
         </HeaderProvider>
       </DigitalTwinProvider>
     </ThemeProvider>

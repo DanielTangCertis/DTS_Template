@@ -277,6 +277,9 @@ export const useDigitalTwinApi = () => {
     AlertIcon.src = "/assets/icons/warning_filled_EA3323.svg";
     const AlertIconOnHover = new Image();
     AlertIconOnHover.src = "/assets/icons/warning_twotone_EA3323.svg";
+    // const alertIconUrl ="/assets/icons/warning_filled_EA3323.svg";
+    // const alertIconHoverUrl = "/assets/icons/warning_twotone_EA3323.svg";
+
     // Construct marker with popup window
     let o = {
       id: "alert" + alertIndex,
@@ -300,7 +303,7 @@ export const useDigitalTwinApi = () => {
       fontColor: "#ffffff",
       fontOutlineColor: "#000000",
 
-      popupURL: "http://www.google.com", //Popup HTML link
+      // popupURL: "http://www.google.com",
       popupBackgroundColor: [1.0, 1.0, 1.0, 1], //Popup background color
       popupSize: [600, 580], //the size of the popup window
       popupOffset: [0, 0], //offset of the popup
