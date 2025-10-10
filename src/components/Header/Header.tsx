@@ -15,6 +15,7 @@ import {
   WbSunny as WeatherIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
+  Warning as WarningIcon,
 } from "@mui/icons-material";
 import dayjs from "dayjs";
 import { useHeader } from "../../contexts/HeaderContext";
@@ -84,8 +85,8 @@ export const Header: React.FC<HeaderProps> = ({
   onWeatherToggle,
 }) => {
   const { state, dispatch } = useHeader();
-  const { state: digitalTwinState } = useDigitalTwinContext();
-  const { setXrayForLayers } = useDigitalTwinApi();
+  const { state: digitalTwinState, dispatch: contextDispatch } = useDigitalTwinContext();
+  const { setXrayForLayers, toggleAlertMarkersWithState } = useDigitalTwinApi();
   const [currentTime, setCurrentTime] = useState("");
 
   useEffect(() => {
@@ -98,6 +99,18 @@ export const Header: React.FC<HeaderProps> = ({
 
     return () => clearInterval(interval);
   }, []);
+
+  const handleAlertMarkersToggle = async () => {
+    try {
+      const newState = await toggleAlertMarkersWithState(
+        digitalTwinState.isAlertMarkersShown,
+        digitalTwinState.alertCoordinates
+      );
+      contextDispatch({ type: "SET_ALERT_MARKERS", payload: newState });
+    } catch (error) {
+      console.error("Failed to toggle alert markers:", error);
+    }
+  };
 
   const handleLayerTreeToggle = async () => {
     const newValue = !state.showLayerTree;
@@ -176,6 +189,21 @@ export const Header: React.FC<HeaderProps> = ({
             </LogoContainer>
 
             <ToolContainer>
+              <Tooltip title="Show Alert Markers" placement="bottom">
+                <IconButton
+                  onClick={handleAlertMarkersToggle}
+                  sx={{
+                    color: digitalTwinState.isAlertMarkersShown ? "#7afafe" : "#fff",
+                    transition: "transform 0.3s",
+                    "&:hover": {
+                      transform: "scale(1.2)",
+                    },
+                  }}
+                >
+                  <WarningIcon fontSize="large" />
+                </IconButton>
+              </Tooltip>
+
               <Tooltip title="Layer Tree" placement="bottom">
                 <IconButton
                   onClick={handleLayerTreeToggle}

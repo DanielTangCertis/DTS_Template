@@ -41,6 +41,22 @@ export interface AnimationImageResponse {
   image: string;
 }
 
+export interface World2ScreenResponse {
+  callbackIndex: number;
+  command: string;
+  commandIndex: number;
+  result: number;
+  resultMessage: string;
+  screenPosition: [number, number]; // [x, y]
+  timestamp: number;
+}
+
+export interface Coordinates {
+  x: number;
+  y: number;
+  z: number;
+}
+
 // Digital Twin API Interface
 export interface FDApi {
   tileLayer: {
@@ -98,6 +114,13 @@ export interface FDApi {
   settings: {
     setMainUIVisibility: (visible: boolean) => void;
   };
+  marker: {
+    clear: () => Promise<void>;
+    add: (...args: any[]) => Promise<void>
+  };
+  coord: { //https://sdk.freedo3d.com/doc/api/Coord.html
+    world2Screen: (x:number,y:number,z:number) => Promise<World2ScreenResponse>; //screen coordinates
+  }
 }
 
 // Global Window Interface Extensions
@@ -118,7 +141,8 @@ declare global {
       ): DigitalTwinPlayer;
     };
     HostConfig: {
-      Player: string;
+      IP: string;
+      Port: string;
       InstanceId?: string;
       Path?: string;
       UseHttps?: boolean;

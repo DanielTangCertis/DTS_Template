@@ -5,7 +5,8 @@
  * UseHttps: Whether to use HTTPS protocol
  */
 var HostConfig = {
-  Player: "10.1.1.12:8080",
+  IP: "192.168.1.19",
+  Port: "8080",
   InstanceId: "1798948163867",
   Path: "C:/Users/CTS-ENG/AppData/Roaming/DTS Cloud/6.1/SDK",
   UseHttps: false,

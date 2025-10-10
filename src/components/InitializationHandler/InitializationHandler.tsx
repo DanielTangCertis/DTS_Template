@@ -4,7 +4,7 @@ import { useDigitalTwinApi } from "@/hooks/useDigitalTwinApi";
 
 const InitializationHandler: React.FC = () => {
   const { state, dispatch } = useDigitalTwinContext();
-  const { startCameraOrbit } = useDigitalTwinApi();
+  const { startCameraOrbit, toggleAlertMarkersWithState } = useDigitalTwinApi();
   const { coordsForCameraOrbit, playerIsReady } = state;
   useEffect(() => {
     if (playerIsReady) {
@@ -17,6 +17,17 @@ const InitializationHandler: React.FC = () => {
           // Log any error if the camera orbit API fails to execute
           console.error(
             "Initialization failed: Camera orbit could not start.",
+            error
+          );
+        });
+
+      toggleAlertMarkersWithState(false, state.alertCoordinates)
+        .then((newState) => {
+          dispatch({ type: "SET_ALERT_MARKERS", payload: newState });
+        })
+        .catch((error) => {
+          console.error(
+            "Initialization failed: Alert markers could not be created.",
             error
           );
         });

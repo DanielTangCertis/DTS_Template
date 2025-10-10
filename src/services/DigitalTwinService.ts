@@ -76,7 +76,6 @@ class DigitalTwinService {
 
   // Initialize by creating the DigitalTwinPlayer
   async initialize(): Promise<boolean> {
-    
     // Already connected
     if (this._connectionState.status === ConnectionStatus.CONNECTED) {
       console.log("Already connected");
@@ -97,9 +96,9 @@ class DigitalTwinService {
     });
 
     try {
-      if (!window.HostConfig?.Player) {
+      if (!window.HostConfig?.IP || !window.HostConfig?.Port) {
         throw new Error(
-          "HostConfig.Player not found. Make sure ac_conf.js is loaded."
+          "HostConfig.IP or HostConfig.Port not found. Make sure ac_conf.js is loaded and configured."
         );
       }
 
@@ -122,8 +121,8 @@ class DigitalTwinService {
           onEvent: this.handlePlayerEvent.bind(this),
         },
       };
-
-      new window.DigitalTwinPlayer(window.HostConfig.Player, playerConfig);
+      let address = window.HostConfig.IP + ":" + window.HostConfig.Port;
+      new window.DigitalTwinPlayer(address, playerConfig);
 
       console.log("Digital Twin Player created successfully");
 
@@ -169,9 +168,37 @@ class DigitalTwinService {
     }
   }
 
-  private handlePlayerEvent(eventData?: any): void {
+  private async handlePlayerEvent(eventData?: any): Promise<void> {
     console.log("Digital Twin Event:", eventData);
-    // Handle specific events as needed
+    switch (eventData.eventtype) {
+      case "LeftMouseButtonClick":
+        //markers
+        if (eventData.Type == "marker") {
+          let mouseCoords: number[] = eventData.MouseClickPoint;
+          try {
+            let response = await this.safeApiCall(() => {
+              return window.fdapi.coord.world2Screen(
+                mouseCoords[0],
+                mouseCoords[1],
+                mouseCoords[2]
+              );
+            });
+            if (response.result === 0 && response.screenPosition) {
+              const [screenX, screenY] = response.screenPosition;
+              console.log(`Screen coordinates: x=${screenX}, y=${screenY}`);
+
+              // Create react component at the location (screenX, screenY)
+              // ...
+            }
+          } catch (error) {
+            console.error(
+              "Failed to convert world to screen coordinates:",
+              error
+            );
+          }
+        }
+        break;
+    }
   }
 
   // Enhanced disconnect with console restoration

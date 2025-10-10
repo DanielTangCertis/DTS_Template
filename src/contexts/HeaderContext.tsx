@@ -11,7 +11,7 @@ type HeaderAction =
   | { type: 'SET_SHOW_LAYER_TREE'; payload: boolean }
   | { type: 'SET_SHOW_ANIMATION'; payload: boolean }
   | { type: 'SET_SHOW_WEATHER'; payload: boolean }
-  | { type: 'SET_SHOW_UI'; payload: boolean };
+  | { type: 'SET_SHOW_UI'; payload: boolean }
 
 const initialHeaderState: HeaderState = {
   showLayerTree: false,

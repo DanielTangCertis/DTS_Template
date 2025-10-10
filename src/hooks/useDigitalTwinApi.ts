@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 import { changeWeather, WeatherOptions } from "../utils/weatherUtils";
-import { FDApi } from "../types/digitalTwin.types";
+import { Coordinates, FDApi } from "../types/digitalTwin.types";
 
 export const useDigitalTwinApi = () => {
   const apiRef = useRef<FDApi | null>(null);
@@ -243,6 +243,84 @@ export const useDigitalTwinApi = () => {
     }
   }, []);
 
+  // Markers
+  const toggleAlertMarkersWithState = useCallback(
+    async (isCurrentlyShown: boolean, alertCoordinates: Coordinates[]) => {
+      try {
+        const api = ensureApiAvailable();
+
+        if (isCurrentlyShown) {
+          // Clear existing markers
+          api.marker.clear();
+          return false; // Return new state
+        } else {
+          // Create markers
+          for (let i = 0; i < alertCoordinates.length; i++) {
+            createMarker(api, alertCoordinates[i], i);
+          }
+          return true; // Return new state
+        }
+      } catch (error) {
+        console.error("Failed to toggle markers:", error);
+        throw error;
+      }
+    },
+    [ensureApiAvailable]
+  );
+
+  const createMarker = (
+    api: FDApi,
+    alertCoords: Coordinates,
+    alertIndex: number
+  ) => {
+    const AlertIcon = new Image();
+    AlertIcon.src = "/assets/icons/warning_filled_EA3323.svg";
+    const AlertIconOnHover = new Image();
+    AlertIconOnHover.src = "/assets/icons/warning_twotone_EA3323.svg";
+    // Construct marker with popup window
+    let o = {
+      id: "alert" + alertIndex,
+      coordinate: [alertCoords.x, alertCoords.y, alertCoords.z], //coordinate position
+      coordinateType: 0, //default 0 is the projection coordinate system, can also be set to latitude and longitude space coordinate system value of 1
+      anchors: [0, 100], //Anchors control the overall offset of the marker
+      range: [0, 10000], //visual range
+
+      imagePath: AlertIcon.src,
+      hoverImagePath: AlertIconOnHover.src,
+      // imageSize: [32, 32], // the size of the image
+      fixedSize: true, // image fixed size, range of values: false adaptive, near large, far small, true fixed size, default value: false
+
+      text: "alert" + alertIndex, //the text to be displayed
+      useTextAnimation: false, //turn on the text expansion animation effect
+      textRange: [0, 10000], //the visible range of the text [near-crop distance, far-crop distance]
+      textOffset: [0, 0], // text offset
+      textBackgroundColor: [0, 0, 0, 0], // text background color
+      fontSize: 10, // font size
+      fontOutlineSize: 1, // font outline size
+      fontColor: "#ffffff",
+      fontOutlineColor: "#000000",
+
+      popupURL: "http://www.google.com", //Popup HTML link
+      popupBackgroundColor: [1.0, 1.0, 1.0, 1], //Popup background color
+      popupSize: [600, 580], //the size of the popup window
+      popupOffset: [0, 0], //offset of the popup
+
+      showLine: false, //whether to show the vertical traction line below the markup point
+      lineSize: [2, 50], //the width and height of the vertical tractor line [width, height]
+      lineColor: [
+        0.2274509803921569, 0.8156862745098039, 0.9843137254901961, 1,
+      ], //color of vertical traction line
+      lineOffset: [0, 0], //vertical traction line offset
+
+      autoHidePopupWindow: true, //whether to close the popup window automatically after losing focus
+      autoHeight: false, // Auto determine if there is an object below
+      displayMode: 2, // display mode
+      priority: 0, // the priority of avoidance
+      occlusionCull: false, // Whether to participate in occlusion culling
+    };
+    api.marker.add(o);
+  };
+
   return {
     // Layer Management
     toggleLayerVisibility,
@@ -266,5 +344,8 @@ export const useDigitalTwinApi = () => {
 
     // Camera Controls
     startCameraOrbit,
+
+    //Markers
+    toggleAlertMarkersWithState,
   };
 };
