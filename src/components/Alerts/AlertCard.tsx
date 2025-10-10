@@ -1,9 +1,9 @@
 import React from "react";
-import { Box, Typography, styled } from "@mui/material";
+import { useRef, useEffect, useState } from "react";
+import { Box, Typography, styled, IconButton } from "@mui/material";
 import { AlertData, AlertStatus } from "@/types/digitalTwin.types";
 
 const StyledAlertCard = styled(Box)({
-  position: "fixed",
   backgroundColor: "#000000",
   color: "#ffffff",
   padding: "16px 20px",
@@ -15,6 +15,25 @@ const StyledAlertCard = styled(Box)({
   zIndex: 1000,
   pointerEvents: "auto",
   fontFamily: "General Sans, Arial, sans-serif",
+  position: "fixed",
+});
+
+const CloseButton = styled(IconButton)({
+  position: "absolute",
+  top: "8px",
+  right: "8px",
+  padding: 0,
+  width: "24px", // Adjust based on your card height
+  height: "24px",
+  "&:hover": {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+  },
+});
+
+const CloseIcon = styled("img")({
+  width: "100%",
+  height: "100%",
+  display: "block",
 });
 
 const StatusChip = styled(Box)<{ status: AlertStatus }>(({ status }) => ({
@@ -35,18 +54,39 @@ interface AlertCardProps {
   onClose?: () => void;
 }
 
-export const AlertCard: React.FC<AlertCardProps> = ({ alert, position, onClose }) => {
+export const AlertCard: React.FC<AlertCardProps> = ({
+  alert,
+  position,
+  onClose,
+}) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [buttonSize, setButtonSize] = useState(24);
+
+  useEffect(() => {
+    if (cardRef.current) {
+      const height = cardRef.current.offsetHeight;
+      setButtonSize(height * 0.2);
+    }
+  }, []);
   return (
     <StyledAlertCard
+      ref={cardRef}
       sx={{
         left: `${position.x + 10}px`,
         top: `${position.y + 10}px`,
       }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClose?.();
-      }}
     >
+      <CloseButton
+        sx={{ width: buttonSize, height: buttonSize }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose?.();
+        }}
+        aria-label="Close alert"
+      >
+        <CloseIcon src="/assets/icons/cancel_filled_FFFFFF.svg" alt="Close" />
+      </CloseButton>
+
       <Typography
         variant="h6"
         sx={{
@@ -54,6 +94,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, position, onClose }
           fontWeight: "bold",
           marginBottom: "8px",
           fontFamily: "General Sans, Arial, sans-serif",
+          paddingRight: "32px", // Add padding to prevent text overlap with close button
         }}
       >
         {alert.title}
@@ -82,7 +123,8 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, position, onClose }
           fontFamily: "General Sans, Arial, sans-serif",
         }}
       >
-        Location: ({alert.location.x.toFixed(2)}, {alert.location.y.toFixed(2)}, {alert.location.z.toFixed(2)})
+        Location: ({alert.location.x.toFixed(2)}, {alert.location.y.toFixed(2)},{" "}
+        {alert.location.z.toFixed(2)})
       </Typography>
     </StyledAlertCard>
   );
