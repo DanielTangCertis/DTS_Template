@@ -4,7 +4,7 @@ import {
   lineSampleData,
   lineSampleData2,
   barSampleData2,
-} from "@/sampleData";
+} from "@/data/sampleData";
 import {
   facilityRadarData,
   sparklineSampleData,
@@ -13,6 +13,9 @@ import {
 import { Panel } from "../components/Panel/Panel";
 import { NivoChart } from "@/components/NivoChart/NivoChart";
 import { MUIChart } from "@/components/MUIChart/MUIChart";
+import { CustomContent } from "@/components/CustomContent/CustomContent";
+import EquipmentFlowChart from "@/components/HierarchyAffected/hierarchyAffected";
+import { Height } from "@mui/icons-material";
 
 const Page3: React.FC = () => {
   return (
@@ -36,7 +39,10 @@ const Page3: React.FC = () => {
 
       {/* Left Panel */}
       <Panel side="left" delay={0}>
-        <NivoChart type="line" title="Crowd Flow" data={lineSampleData()} />
+        {/* <NivoChart type="line" title="Crowd Flow" data={lineSampleData()} /> */}
+        <CustomContent style={{ height: "60vh", width: "100%" }}>
+          <EquipmentFlowChart />
+        </CustomContent>
         <NivoChart
           type="bar"
           title="This is a bar chart"

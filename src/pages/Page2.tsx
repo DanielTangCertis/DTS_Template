@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { lineSampleData2 } from "@/sampleData";
+import { lineSampleData2 } from "@/data/sampleData";
 import { Panel } from "../components/Panel/Panel";
 import { NivoChart } from "@/components/NivoChart/NivoChart";
 
@@ -7,7 +7,7 @@ import {
   pieSampleData,
   lineSampleData,
   barSampleData2,
-} from "@/sampleData";
+} from "@/data/sampleData";
 
 const Page2: React.FC = () => {
   return (

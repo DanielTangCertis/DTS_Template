@@ -5,7 +5,6 @@
   overflow: hidden; /* Prevent scrolling as requested */
   margin-bottom: 1.5rem; /* Use rem instead of fixed px */
 
-  /* Your existing styling */
   pointer-events: auto;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);

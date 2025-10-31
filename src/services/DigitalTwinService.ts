@@ -3,7 +3,7 @@
  */
 
 import { useCallback } from "react";
-
+import { useDigitalTwinApi } from "@/hooks/useDigitalTwinApi";
 import {
   FDApi,
   LayerTreeResponse,
@@ -169,39 +169,66 @@ class DigitalTwinService {
     }
   }
 
+  private cameraOrbitTimer: NodeJS.Timeout | null = null;
+
+  // Add method to set the timer (called from startCameraOrbit)
+  setCameraOrbitTimer(timer: NodeJS.Timeout | null): void {
+    this.cameraOrbitTimer = timer;
+  }
+
+  // Add method to get the timer
+  getCameraOrbitTimer(): NodeJS.Timeout | null {
+    return this.cameraOrbitTimer;
+  }
+
+  // Add method to stop camera orbit
+  stopCameraOrbit(): void {
+    if (this.cameraOrbitTimer) {
+      clearTimeout(this.cameraOrbitTimer);
+      this.cameraOrbitTimer = null;
+      window.fdapi.camera.stop();
+      console.log("Camera orbit stopped");
+    }
+  }
+
   private async handlePlayerEvent(eventData?: any): Promise<void> {
     console.log("Digital Twin Event:", eventData);
     switch (eventData.eventtype) {
       case "LeftMouseButtonClick":
         //markers
         if (eventData.Type == "marker" && eventData.Id) {
+          // stop camera rotation
+          this.stopCameraOrbit();
+          window.fdapi.marker.focus(eventData.Id, 2, 0.5);
           const markerKey = eventData.Id; // e.g., "alert0", "alert1", etc
           let mouseCoords: number[] = eventData.MouseClickPoint;
-          try {
-            let response = await this.safeApiCall(() => {
-              return window.fdapi.coord.world2Screen(
-                mouseCoords[0],
-                mouseCoords[1],
-                mouseCoords[2]
-              );
-            });
-            if (response.result === 0 && response.screenPosition) {
-              const [screenX, screenY] = response.screenPosition;
-              console.log(`Screen coordinates: x=${screenX}, y=${screenY}`);
-              console.log(`Alert marker key: ${markerKey}`);
-
-              // Notify listeners to show the alert card
-              this.notifyAlertCardListeners(markerKey, {
-                x: screenX,
-                y: screenY,
+          setTimeout(async () => {
+            try {
+              let response = await this.safeApiCall(() => {
+                return window.fdapi.coord.world2Screen(
+                  mouseCoords[0],
+                  mouseCoords[1],
+                  mouseCoords[2]
+                );
               });
+              if (response.result === 0 && response.screenPosition) {
+                const [screenX, screenY] = response.screenPosition;
+                console.log(`Screen coordinates: x=${screenX}, y=${screenY}`);
+                console.log(`Alert marker key: ${markerKey}`);
+
+                // Notify listeners to show the alert card
+                this.notifyAlertCardListeners(markerKey, {
+                  x: screenX,
+                  y: screenY,
+                });
+              }
+            } catch (error) {
+              console.error(
+                "Failed to convert world to screen coordinates:",
+                error
+              );
             }
-          } catch (error) {
-            console.error(
-              "Failed to convert world to screen coordinates:",
-              error
-            );
-          }
+          }, 1000);
         }
         break;
     }
@@ -585,7 +612,8 @@ export const useDigitalTwinService = () => {
     stopAnimation: digitalTwinService.stopAnimation.bind(digitalTwinService),
     toggleLayer: digitalTwinService.toggleLayer.bind(digitalTwinService),
     onDataUpdate: digitalTwinService.onDataUpdate.bind(digitalTwinService),
-    onAlertCardShow: digitalTwinService.onAlertCardShow.bind(digitalTwinService),
+    onAlertCardShow:
+      digitalTwinService.onAlertCardShow.bind(digitalTwinService),
     // Helper methods
     getStatusMessage: () => digitalTwinService.getStatusMessage(),
     getElapsedTime: () => digitalTwinService.getElapsedTime(),

@@ -51,6 +51,13 @@ export interface World2ScreenResponse {
   timestamp: number;
 }
 
+//use this after sorting out the response type
+export interface getObjectIDsResponse {
+  id: string;
+  objectIds: string[];
+}
+[];
+
 export interface Coordinates {
   x: number;
   y: number;
@@ -62,7 +69,7 @@ export enum AlertStatus {
   RESOLVING = "RESOLVING",
 }
 
-export interface AlertData {
+export interface AlertDataType {
   entityId: string;
   title: string;
   status: AlertStatus;
@@ -70,7 +77,7 @@ export interface AlertData {
 }
 
 export interface AlertsCollection {
-  [alertKey: string]: AlertData;
+  [alertKey: string]: AlertDataType;
 }
 
 export type AlertCardListener = (
@@ -98,6 +105,17 @@ export interface FDApi {
       contrast?: number,
       contrastBase?: number
     ) => Promise<void>;
+    getObjectIDs: (ids: string[] | string) => Promise<{ data: any }>;
+    getActorInfoFromDB: (
+      data: {
+        tileLayerId: string;
+        objectIds: string[] | string;
+      }[]
+    ) => Promise<{ data: any }>;
+    getActorInfo: (data: {
+      id: string;
+      objectIds: string[] | string;
+    }) => Promise<{ data: any }>;
   };
   infoTree: {
     get: () => Promise<{ infotree: LayerTreeApiItem[] }>;
@@ -114,6 +132,15 @@ export interface FDApi {
       rotation: number[],
       distance: number,
       time: number
+    ) => Promise<void>;
+    stop: () => Promise<void>;
+    set: (
+      x: number,
+      y: number,
+      z: number,
+      pitch: number,
+      yaw: number,
+      flyTime: number
     ) => Promise<void>;
   };
   weather: {
@@ -137,7 +164,15 @@ export interface FDApi {
   };
   marker: {
     clear: () => Promise<void>;
+    hide: (ids: string[]) => Promise<void>;
+    show: (ids: string[]) => Promise<void>;
     add: (...args: any[]) => Promise<void>;
+    focus: (
+      ids: string | string[],
+      distance?: number,
+      flyTime?: number,
+      rotation?: number[]
+    ) => Promise<void>;
   };
   coord: {
     //https://sdk.freedo3d.com/doc/api/Coord.html

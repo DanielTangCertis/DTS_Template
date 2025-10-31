@@ -1,7 +1,7 @@
 import React from "react";
 import { useRef, useEffect, useState } from "react";
 import { Box, Typography, styled, IconButton } from "@mui/material";
-import { AlertData, AlertStatus } from "@/types/digitalTwin.types";
+import { AlertDataType, AlertStatus } from "@/types/digitalTwin.types";
 
 const StyledAlertCard = styled(Box)({
   backgroundColor: "#000000",
@@ -49,7 +49,7 @@ const StatusChip = styled(Box)<{ status: AlertStatus }>(({ status }) => ({
 }));
 
 interface AlertCardProps {
-  alert: AlertData;
+  alert: AlertDataType;
   position: { x: number; y: number };
   onClose?: () => void;
 }

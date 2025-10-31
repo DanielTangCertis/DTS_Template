@@ -16,6 +16,7 @@ import {
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
   Warning as WarningIcon,
+  CameraAlt as CameraAltIcon,
 } from "@mui/icons-material";
 import dayjs from "dayjs";
 import { useHeader } from "../../contexts/HeaderContext";
@@ -85,8 +86,10 @@ export const Header: React.FC<HeaderProps> = ({
   onWeatherToggle,
 }) => {
   const { state, dispatch } = useHeader();
-  const { state: digitalTwinState, dispatch: contextDispatch } = useDigitalTwinContext();
-  const { setXrayForLayers, toggleAlertMarkersWithState } = useDigitalTwinApi();
+  const { state: digitalTwinState, dispatch: contextDispatch } =
+    useDigitalTwinContext();
+  const { setXrayForLayers, toggleMarkersWithState, setCamera } =
+    useDigitalTwinApi();
   const [currentTime, setCurrentTime] = useState("");
 
   useEffect(() => {
@@ -102,13 +105,44 @@ export const Header: React.FC<HeaderProps> = ({
 
   const handleAlertMarkersToggle = async () => {
     try {
-      const newState = await toggleAlertMarkersWithState(
+      const newState = await toggleMarkersWithState(
         digitalTwinState.isAlertMarkersShown,
-        digitalTwinState.alertCoordinates
+        digitalTwinState.alertIDs
       );
       contextDispatch({ type: "SET_ALERT_MARKERS", payload: newState });
     } catch (error) {
       console.error("Failed to toggle alert markers:", error);
+    }
+  };
+
+  const handleCCTVMarkersToggle = async () => {
+    try {
+      const newState = await toggleMarkersWithState(
+        digitalTwinState.isCCTVMarkersShown,
+        digitalTwinState.CCTVIDs
+      );
+      contextDispatch({ type: "SET_CCTV_MARKERS", payload: newState });
+      newState
+        ? setCamera(
+            //change to top view if cameras are on
+            34543.195,
+            33770.527813,
+            251.48252,
+            -85.998886,
+            168.460464,
+            0
+          )
+        : setCamera(
+            //change to scene view (and start orbit if off?)
+            34738.245,
+            34043.015312,
+            93.53667,
+            -14.999996,
+            130.650467,
+            0
+          );
+    } catch (error) {
+      console.error("Failed to toggle camera markers:", error);
     }
   };
 
@@ -189,11 +223,30 @@ export const Header: React.FC<HeaderProps> = ({
             </LogoContainer>
 
             <ToolContainer>
+              <Tooltip title="Show Camera Markers" placement="bottom">
+                <IconButton
+                  onClick={handleCCTVMarkersToggle}
+                  sx={{
+                    color: digitalTwinState.isCCTVMarkersShown
+                      ? "#7afafe"
+                      : "#fff",
+                    transition: "transform 0.3s",
+                    "&:hover": {
+                      transform: "scale(1.2)",
+                    },
+                  }}
+                >
+                  <CameraAltIcon fontSize="large" />
+                </IconButton>
+              </Tooltip>
+
               <Tooltip title="Show Alert Markers" placement="bottom">
                 <IconButton
                   onClick={handleAlertMarkersToggle}
                   sx={{
-                    color: digitalTwinState.isAlertMarkersShown ? "#7afafe" : "#fff",
+                    color: digitalTwinState.isAlertMarkersShown
+                      ? "#7afafe"
+                      : "#fff",
                     transition: "transform 0.3s",
                     "&:hover": {
                       transform: "scale(1.2)",

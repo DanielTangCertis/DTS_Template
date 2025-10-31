@@ -7,7 +7,7 @@ import {
   barSampleData2,
   expenditureData,
   personnelData,
-} from "@/sampleData";
+} from "@/data/sampleData";
 import { Panel } from "../components/Panel/Panel";
 import { NivoChart } from "../components/NivoChart/NivoChart";
 import { CustomContent } from "../components/CustomContent/CustomContent";

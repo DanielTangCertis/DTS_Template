@@ -365,3 +365,31 @@ export const personnelData = () => {
     { info: "Maintenance", count: 6.4, unit: "%" },
   ];
 };
+
+import { AlertStatus } from "../types/digitalTwin.types";
+export const alertData = {
+  alert0: {
+    entityId: "B61EA5A642B755BE70BBB8A0FBACB999",
+    title: "HVAC System Malfunction",
+    status: AlertStatus.UNRESOLVED,
+    location: { x: 34490.62890625, y: 33713.26171875, z: 21.485000610351562 },
+  },
+  alert1: {
+    entityId: "C72FB6B753C866CF81CCC9B1GCBDC999",
+    title: "Fire Alarm Activated",
+    status: AlertStatus.RESOLVING,
+    location: { x: 34551.42, y: 33715.58, z: 34.07 },
+  },
+  alert2: {
+    entityId: "D83GC7C864D977DG92DDD0C2HDCE999",
+    title: "Water Leak Detected",
+    status: AlertStatus.UNRESOLVED,
+    location: { x: 34518.91, y: 33708.69, z: 46.67 },
+  },
+  alert3: {
+    entityId: "E94HD8D975E088EH03EEE1D3IEDFE999",
+    title: "Elevator Door Sensor Error",
+    status: AlertStatus.RESOLVING,
+    location: { x: 34543.19, y: 33721.3, z: 59.89 },
+  },
+};

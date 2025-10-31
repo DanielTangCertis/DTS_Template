@@ -1,6 +1,8 @@
 import { useCallback, useRef } from "react";
 import { changeWeather, WeatherOptions } from "../utils/weatherUtils";
 import { Coordinates, FDApi } from "../types/digitalTwin.types";
+import { useDigitalTwinContext } from "@/contexts/DigitalTwinContext";
+import { digitalTwinService } from "../services/DigitalTwinService";
 
 export const useDigitalTwinApi = () => {
   const apiRef = useRef<FDApi | null>(null);
@@ -108,7 +110,6 @@ export const useDigitalTwinApi = () => {
     [ensureApiAvailable]
   );
 
-  // camera: Orbit camera around the 3D scene
   const startCameraOrbit = useCallback(
     async (
       location: number[],
@@ -121,11 +122,14 @@ export const useDigitalTwinApi = () => {
         const flightLoop = () => {
           api.camera.flyAround(location, rotation, distance, time);
 
-          // Schedule the NEXT loop iteration to start after the current one finishes.
-          setTimeout(flightLoop, time * 1000);
+          // Schedule the NEXT loop iteration
+          let timer = setTimeout(flightLoop, time * 1000);
+
+          // Store timer in the service instead of context
+          digitalTwinService.setCameraOrbitTimer(timer);
         };
 
-        // Start the very first iteration of the loop.
+        // Start the very first iteration
         flightLoop();
         console.log("starting camera orbit...");
       } catch (error) {
@@ -136,7 +140,10 @@ export const useDigitalTwinApi = () => {
     [ensureApiAvailable]
   );
 
-  // const stopCameraOrbit = useCallback(async );
+  const stopCameraOrbit = useCallback(async () => {
+    // Call the service method
+    digitalTwinService.stopCameraOrbit();
+  }, []);
 
   const stopAnimation = useCallback(async () => {
     try {
@@ -148,6 +155,21 @@ export const useDigitalTwinApi = () => {
       throw error;
     }
   }, [ensureApiAvailable]);
+
+  const setCamera = useCallback(
+    async (
+      x: number,
+      y: number,
+      z: number,
+      pitch: number,
+      yaw: number,
+      flyTime: number
+    ) => {
+      const api = ensureApiAvailable();
+      api.camera.set(x,y,z,pitch,yaw,flyTime);
+    },
+    [ensureApiAvailable]
+  );
 
   // reset: Player Control
   const resetPlayer = useCallback(
@@ -243,21 +265,19 @@ export const useDigitalTwinApi = () => {
     }
   }, []);
 
-  // Markers
-  const toggleAlertMarkersWithState = useCallback(
-    async (isCurrentlyShown: boolean, alertCoordinates: Coordinates[]) => {
+  // Toggle for all kinds of Markers (alerts,cameras etc.) should use the same logic
+  const toggleMarkersWithState = useCallback(
+    async (isCurrentlyShown: boolean, IDs: string[]) => {
       try {
         const api = ensureApiAvailable();
 
         if (isCurrentlyShown) {
-          // Clear existing markers
-          api.marker.clear();
+          // Hide markers
+          api.marker.hide(IDs);
           return false; // Return new state
         } else {
-          // Create markers
-          for (let i = 0; i < alertCoordinates.length; i++) {
-            createMarker(api, alertCoordinates[i], i);
-          }
+          // Show markers
+          api.marker.show(IDs);
           return true; // Return new state
         }
       } catch (error) {
@@ -268,60 +288,121 @@ export const useDigitalTwinApi = () => {
     [ensureApiAvailable]
   );
 
+  enum MarkerType {
+    ALERT = "ALERT",
+    CAMERA = "CAMERA",
+  }
+
   const createMarker = (
     api: FDApi,
-    alertCoords: Coordinates,
-    alertIndex: number
+    markerType: MarkerType,
+    // index:number,
+    // coords: Coordinates,
+    // id: string,
+    data: any[] //this should be an array of arrays of data for each floor
   ) => {
-    const AlertIcon = new Image();
-    AlertIcon.src = "/assets/icons/warning_filled_EA3323.svg";
-    const AlertIconOnHover = new Image();
-    AlertIconOnHover.src = "/assets/icons/warning_twotone_EA3323.svg";
-    // const alertIconUrl ="/assets/icons/warning_filled_EA3323.svg";
-    // const alertIconHoverUrl = "/assets/icons/warning_twotone_EA3323.svg";
+    const Icon = new Image();
+    const IconOnHover = new Image();
+
+    switch (markerType) {
+      case "ALERT":
+        Icon.src = "/assets/icons/warning_512duo_EA3323.png"; //MUST USE PNG
+        IconOnHover.src = "/assets/icons/warning_512solid_EA3323.png"; //MUST USE PNG
+        break;
+      case "CAMERA":
+        Icon.src = "/assets/icons/cctv.png";
+        IconOnHover.src = "/assets/icons/cctv.png";
+        break;
+      default:
+        Icon.src = "/assets/icons/warning_512duo_EA3323.png";
+        IconOnHover.src = "/assets/icons/warning_512solid_EA3323.png";
+        break;
+    }
+
+    // marker data
+    let markerProps: any = [];
+    // console.log("datassssss", data);
+    //FLATTEN the data to a single array
+    markerProps = data.flat().map((item: any) => {
+      return {
+        id: item.UUID,
+        coordinate: item.location,
+        coordinateType: 0, //default 0 is the projection coordinate system, can also be set to latitude and longitude space coordinate system value of 1
+        anchors: [-12, 24], // (-0.5x, y) -> see imageSize
+        range: [0, 500], //visual range
+        imagePath: Icon.src,
+        // hoverImagePath: AlertIconOnHover.src,
+        imageSize: [24, 24], // the size of the image
+        fixedSize: true, // image fixed size, range of values: false adaptive, near large, far small, true fixed size, default value: false
+        // text: item.AssetName //the text to be displayed
+        useTextAnimation: false, //turn on the text expansion animation effect
+        textRange: [0, 500], //the visible range of the text [near-crop distance, far-crop distance]
+        textOffset: [0, 0], // text offset
+        textBackgroundColor: [0, 0, 0, 0], // text background color
+        fontSize: 10, // font size
+        fontOutlineSize: 1, // font outline size
+        fontColor: "#ffffff",
+        fontOutlineColor: "#000000",
+        popupURL: `https://10.238.30.117/stream.html?id=${item.CameraConfigId}`,
+        popupBackgroundColor: [1.0, 1.0, 1.0, 1], //Popup background color
+        popupSize: [410, 231], //the size of the popup window
+        popupOffset: [0, 0], //offset of the popup
+        showLine: false, //whether to show the vertical traction line below the markup point
+        lineSize: [2, 50], //the width and height of the vertical tractor line [width, height]
+        lineColor: [
+          0.2274509803921569, 0.8156862745098039, 0.9843137254901961, 1,
+        ], //color of vertical traction line
+        lineOffset: [0, 0], //vertical traction line offset
+        autoHidePopupWindow: true, //whether to close the popup window automatically after losing focus
+        autoHeight: false, // Auto determine if there is an object below
+        displayMode: 2, // display mode
+        priority: 0, // the priority of avoidance
+        occlusionCull: false, // Whether to participate in occlusion culling
+      };
+    });
 
     // Construct marker with popup window
-    let o = {
-      id: "alert" + alertIndex,
-      coordinate: [alertCoords.x, alertCoords.y, alertCoords.z], //coordinate position
-      coordinateType: 0, //default 0 is the projection coordinate system, can also be set to latitude and longitude space coordinate system value of 1
-      anchors: [0, 100], //Anchors control the overall offset of the marker
-      range: [0, 10000], //visual range
+    // let o = {
+    //   id: id,
+    //   coordinate: [coords.x, coords.y, coords.z], //coordinate position
+    //   coordinateType: 0, //default 0 is the projection coordinate system, can also be set to latitude and longitude space coordinate system value of 1
+    //   anchors: [-32, 64], //Anchors control the overall offset of the marker
+    //   range: [0, 1000], //visual range
 
-      imagePath: AlertIcon.src,
-      hoverImagePath: AlertIconOnHover.src,
-      // imageSize: [32, 32], // the size of the image
-      fixedSize: true, // image fixed size, range of values: false adaptive, near large, far small, true fixed size, default value: false
+    //   imagePath: Icon.src,
+    //   // hoverImagePath: AlertIconOnHover.src,
+    //   imageSize: [64, 64], // the size of the image
+    //   fixedSize: true, // image fixed size, range of values: false adaptive, near large, far small, true fixed size, default value: false
 
-      text: "alert" + alertIndex, //the text to be displayed
-      useTextAnimation: false, //turn on the text expansion animation effect
-      textRange: [0, 10000], //the visible range of the text [near-crop distance, far-crop distance]
-      textOffset: [0, 0], // text offset
-      textBackgroundColor: [0, 0, 0, 0], // text background color
-      fontSize: 10, // font size
-      fontOutlineSize: 1, // font outline size
-      fontColor: "#ffffff",
-      fontOutlineColor: "#000000",
+    //   text: assetName ? assetName : markerType + index, //the text to be displayed
+    //   useTextAnimation: false, //turn on the text expansion animation effect
+    //   textRange: [0, 10000], //the visible range of the text [near-crop distance, far-crop distance]
+    //   textOffset: [0, 0], // text offset
+    //   textBackgroundColor: [0, 0, 0, 0], // text background color
+    //   fontSize: 10, // font size
+    //   fontOutlineSize: 1, // font outline size
+    //   fontColor: "#ffffff",
+    //   fontOutlineColor: "#000000",
 
-      // popupURL: "http://www.google.com",
-      popupBackgroundColor: [1.0, 1.0, 1.0, 1], //Popup background color
-      popupSize: [600, 580], //the size of the popup window
-      popupOffset: [0, 0], //offset of the popup
+    //   // popupURL: "http://www.google.com",
+    //   popupBackgroundColor: [1.0, 1.0, 1.0, 1], //Popup background color
+    //   popupSize: [600, 580], //the size of the popup window
+    //   popupOffset: [0, 0], //offset of the popup
 
-      showLine: false, //whether to show the vertical traction line below the markup point
-      lineSize: [2, 50], //the width and height of the vertical tractor line [width, height]
-      lineColor: [
-        0.2274509803921569, 0.8156862745098039, 0.9843137254901961, 1,
-      ], //color of vertical traction line
-      lineOffset: [0, 0], //vertical traction line offset
+    //   showLine: false, //whether to show the vertical traction line below the markup point
+    //   lineSize: [2, 50], //the width and height of the vertical tractor line [width, height]
+    //   lineColor: [
+    //     0.2274509803921569, 0.8156862745098039, 0.9843137254901961, 1,
+    //   ], //color of vertical traction line
+    //   lineOffset: [0, 0], //vertical traction line offset
 
-      autoHidePopupWindow: true, //whether to close the popup window automatically after losing focus
-      autoHeight: false, // Auto determine if there is an object below
-      displayMode: 2, // display mode
-      priority: 0, // the priority of avoidance
-      occlusionCull: false, // Whether to participate in occlusion culling
-    };
-    api.marker.add(o);
+    //   autoHidePopupWindow: true, //whether to close the popup window automatically after losing focus
+    //   autoHeight: false, // Auto determine if there is an object below
+    //   displayMode: 2, // display mode
+    //   priority: 0, // the priority of avoidance
+    //   occlusionCull: false, // Whether to participate in occlusion culling
+    // };
+    api.marker.add(markerProps);
   };
 
   return {
@@ -347,8 +428,12 @@ export const useDigitalTwinApi = () => {
 
     // Camera Controls
     startCameraOrbit,
+    stopCameraOrbit,
+    setCamera,
 
     //Markers
-    toggleAlertMarkersWithState,
+    toggleMarkersWithState,
+    createMarker,
+    MarkerType,
   };
 };

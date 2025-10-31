@@ -2,6 +2,7 @@ import React from "react";
 import { useDigitalTwinContext } from "@/contexts/DigitalTwinContext";
 import { useAlertCardSync } from "@/hooks/useAlertCardSync";
 import { AlertCard } from "./AlertCard";
+import { alertData } from "@/data/sampleData";
 
 export const AlertCardContainer: React.FC = () => {
   const { state, dispatch } = useDigitalTwinContext();
@@ -12,7 +13,8 @@ export const AlertCardContainer: React.FC = () => {
     return null;
   }
 
-  const alert = state.alerts[state.activeAlertCard.alertKey]; // Changed from alertId to alertKey
+  const alert =
+    alertData[state.activeAlertCard.alertKey as keyof typeof alertData];
 
   if (!alert) {
     return null;
