@@ -3,7 +3,6 @@
  */
 
 import { useCallback } from "react";
-import { useDigitalTwinApi } from "@/hooks/useDigitalTwinApi";
 import {
   FDApi,
   LayerTreeResponse,
@@ -195,40 +194,69 @@ class DigitalTwinService {
     console.log("Digital Twin Event:", eventData);
     switch (eventData.eventtype) {
       case "LeftMouseButtonClick":
-        //markers
+        // always stop camera rotation
+        this.stopCameraOrbit();
+        // MARKERS
         if (eventData.Type == "marker" && eventData.Id) {
-          // stop camera rotation
-          this.stopCameraOrbit();
-          window.fdapi.marker.focus(eventData.Id, 2, 0.5);
-          const markerKey = eventData.Id; // e.g., "alert0", "alert1", etc
-          let mouseCoords: number[] = eventData.MouseClickPoint;
-          setTimeout(async () => {
-            try {
-              let response = await this.safeApiCall(() => {
-                return window.fdapi.coord.world2Screen(
-                  mouseCoords[0],
-                  mouseCoords[1],
-                  mouseCoords[2]
-                );
-              });
-              if (response.result === 0 && response.screenPosition) {
-                const [screenX, screenY] = response.screenPosition;
-                console.log(`Screen coordinates: x=${screenX}, y=${screenY}`);
-                console.log(`Alert marker key: ${markerKey}`);
+          const markerID = eventData.Id; // this is the marker id that was passed to createMarker
+          // window.fdapi.marker.focus(markerID); //auto-calculate distance
+          window.fdapi.marker.focus(
+            markerID,
+            1.5,
+            0.5,
+            [-12.962612, 145.627472, 0]
+          );
+          // const objectUUID = markerID.replace("alert_", "");
+          if (markerID.startsWith("alert")) {
+            // let mouseCoords: number[] = eventData.MouseClickPoint;
+            // Delay to allow marker focus animation to complete
+            setTimeout(async () => {
+              try {
+                // Calculate screen center coordinates
+                const screenCenterX = window.innerWidth / 2;
+                const screenCenterY = window.innerHeight / 2;
 
-                // Notify listeners to show the alert card
-                this.notifyAlertCardListeners(markerKey, {
-                  x: screenX,
-                  y: screenY,
+                console.log(
+                  `Screen center coordinates: x=${screenCenterX}, y=${screenCenterY}`
+                );
+                console.log(`Alert marker key: ${markerID}`);
+
+                // Notify listeners to show the alert card at screen center
+                this.notifyAlertCardListeners(markerID, {
+                  x: screenCenterX,
+                  y: screenCenterY,
                 });
+
+                // let response = await this.safeApiCall(() => {
+                //   return window.fdapi.coord.world2Screen(
+                //     mouseCoords[0],
+                //     mouseCoords[1],
+                //     mouseCoords[2]
+                //   );
+                // });
+                // if (response.result === 0 && response.screenPosition) {
+                //   const [screenX, screenY] = response.screenPosition;
+                //   console.log(`Screen coordinates: x=${screenX}, y=${screenY}`);
+                //   console.log(`Alert marker key: ${markerID}`);
+
+                //   // Notify listeners to show the alert card
+                //   this.notifyAlertCardListeners(markerID, {
+                //     x: screenX,
+                //     y: screenY,
+                //   });
+                // }
+              } catch (error) {
+                console.error(
+                  "Failed to convert world to screen coordinates:",
+                  error
+                );
               }
-            } catch (error) {
-              console.error(
-                "Failed to convert world to screen coordinates:",
-                error
-              );
-            }
-          }, 1000);
+            }, 1000);
+          }
+          else if (markerID.startsWith("camera")) {
+            console.log("showing camera feed...");
+            window.fdapi.marker.showPopupWindow(markerID);
+          }
         }
         break;
     }
@@ -241,7 +269,6 @@ class DigitalTwinService {
     return () => this.alertCardListeners.delete(listener);
   }
 
-  // Update the notify method signature
   private notifyAlertCardListeners(
     alertKey: string,
     position: { x: number; y: number }

@@ -6,7 +6,8 @@ import { DigitalTwinProvider } from "./contexts/DigitalTwinContext";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import DigitalTwinLoadingManager from "./components/DigitalTwinLoadingManager/DigitalTwinLoadingManager";
 import InitializationHandler from "./components/InitializationHandler/InitializationHandler";
-import { AlertCardContainer } from "@/components/Alerts/AlertCardContainer";
+// import { AlertCardContainer } from "@/components/Alerts/AlertCardContainer";
+import { AlertCardManager } from "./components/Alerts/AlertCardManager";
 
 // Pages
 import HomePage from "./pages/HomePage";
@@ -61,7 +62,7 @@ const App: React.FC = () => {
               <DigitalTwinLoadingManager />
             </ErrorBoundary>
           </Router>
-          <AlertCardContainer />
+          <AlertCardManager />
         </HeaderProvider>
       </DigitalTwinProvider>
     </ThemeProvider>

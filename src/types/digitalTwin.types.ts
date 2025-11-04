@@ -58,26 +58,32 @@ export interface getObjectIDsResponse {
 }
 [];
 
-export interface Coordinates {
-  x: number;
-  y: number;
-  z: number;
+// export interface Coordinates {
+//   x: number;
+//   y: number;
+//   z: number;
+// }
+
+export enum MarkerType {
+  ALERT = "ALERT",
+  CAMERA = "CAMERA",
 }
 
 export enum AlertStatus {
-  UNRESOLVED = "UNRESOLVED",
+  UNASSIGNED = "UNASSIGNED",
   RESOLVING = "RESOLVING",
 }
 
-export interface AlertDataType {
-  entityId: string;
-  title: string;
-  status: AlertStatus;
-  location: Coordinates;
-}
-
-export interface AlertsCollection {
-  [alertKey: string]: AlertDataType;
+export enum AlertCategory {
+  SECURITY = "SECURITY",
+  ELECTRICAL = "ELECTRICAL",
+  LIFT = "LIFT",
+  IRRIGATION = "IRRIGATION",
+  ACMV = "ACMV",
+  PLUMBING = "PLUMBING",
+  SANITARY = "SANITARY",
+  SIPHONIC_RWDP = "SIPHONIC_RWDP",
+  FIRE_PROTECTION = "FIRE_PROTECTION",
 }
 
 export type AlertCardListener = (
@@ -94,6 +100,22 @@ export interface FDApi {
       flyTime?: number,
       rotation?: number[]
     ) => Promise<void>;
+    focusActors: (
+      data: {
+        id: string;
+        objectIds: string[];
+      },
+      distance?: number,
+      flyTime?: number,
+      rotation?: number[]
+    ) => Promise<void>;
+    highlightActorWithColor: (
+      id: string,
+      objectId: string | string[],
+      color: number[],
+      wireframe: boolean
+    ) => Promise<void>;
+    stopHighlightAllActors: () => Promise<void>;
     enableXRay: (ids: string[] | string, color: number[]) => Promise<void>;
     disableXRay: (ids: string[] | string) => Promise<void>;
     setStyle: (
@@ -173,6 +195,7 @@ export interface FDApi {
       flyTime?: number,
       rotation?: number[]
     ) => Promise<void>;
+    showPopupWindow: (ids: string | string[]) => Promise<void>;
   };
   coord: {
     //https://sdk.freedo3d.com/doc/api/Coord.html

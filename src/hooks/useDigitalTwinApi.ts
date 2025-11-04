@@ -1,7 +1,6 @@
 import { useCallback, useRef } from "react";
 import { changeWeather, WeatherOptions } from "../utils/weatherUtils";
-import { Coordinates, FDApi } from "../types/digitalTwin.types";
-import { useDigitalTwinContext } from "@/contexts/DigitalTwinContext";
+import { MarkerType, FDApi } from "../types/digitalTwin.types";
 import { digitalTwinService } from "../services/DigitalTwinService";
 
 export const useDigitalTwinApi = () => {
@@ -14,6 +13,115 @@ export const useDigitalTwinApi = () => {
     apiRef.current = window.fdapi;
     return window.fdapi;
   }, []);
+
+  const highlightActorWithColor = useCallback(
+    async (
+      tileLayerId: string,
+      objectIds: string | string[],
+      color: number[], //RGBA number[]
+      wireframe: boolean //false means solid color
+    ) => {
+      try {
+        const api = ensureApiAvailable();
+        await api.tileLayer.highlightActorWithColor(
+          tileLayerId,
+          objectIds,
+          color,
+          wireframe
+        );
+      } catch (error) {
+        console.error("Failed to highlight actor:", error);
+        throw error;
+      }
+    },
+    [ensureApiAvailable]
+  );
+
+  const stopHighlightAllActors = useCallback(async () => {
+    try {
+      const api = ensureApiAvailable();
+      await api.tileLayer.stopHighlightAllActors();
+    } catch (error) {
+      console.error("Failed to remove highlights:", error);
+      throw error;
+    }
+  }, [ensureApiAvailable]);
+
+  /**
+   * Starts a blinking highlight effect on an actor
+   * @param tileLayerID - The tile layer ID
+   * @param objectUUID - The object UUID to highlight
+   * @param onColor - The highlight color when on (default: red with 0.1 alpha)
+   * @param offColor - The highlight color when off (default: red with 0 alpha)
+   * @param interval - The blink interval in milliseconds (default: 1000)
+   */
+  const startBlinkingHighlight = useCallback(
+    (
+      highlightTimerRef: React.RefObject<number | null>,
+      tileLayerID: string,
+      objectUUID: string | string[],
+      onColor: number[] = [0.75, 0.05, 0.05, 0.1],
+      offColor: number[] = [0.75, 0.05, 0.05, 0],
+      interval: number = 1000
+    ) => {
+      // Clear any existing timer first
+      stopBlinkingHighlight(highlightTimerRef);
+
+      let isOn = false;
+
+      const blink = () => {
+        try {
+          const api = ensureApiAvailable();
+          const color = isOn ? offColor : onColor;
+          api.tileLayer.highlightActorWithColor(
+            tileLayerID,
+            objectUUID,
+            color,
+            false
+          );
+          isOn = !isOn;
+        } catch (error) {
+          console.error("Failed to toggle highlight:", error);
+          stopBlinkingHighlight(highlightTimerRef);
+        }
+      };
+
+      // Start immediately
+      blink();
+
+      // Then continue at intervals
+      highlightTimerRef.current = window.setInterval(blink, interval); // Explicitly use window.setInterval
+
+      console.log("Started blinking highlight for:", objectUUID);
+    },
+    [ensureApiAvailable]
+  );
+
+  /**
+   * Stops the blinking highlight effect and optionally clears the highlight
+   */
+  const stopBlinkingHighlight = useCallback(
+    (
+      highlightTimerRef: React.RefObject<number | null>,
+      clearHighlight: boolean = false
+    ) => {
+      if (highlightTimerRef.current !== null) {
+        window.clearInterval(highlightTimerRef.current); // Explicitly use window.clearInterval
+        highlightTimerRef.current = null;
+        console.log("Stopped blinking highlight");
+      }
+
+      if (clearHighlight) {
+        try {
+          const api = ensureApiAvailable();
+          api.tileLayer.stopHighlightAllActors();
+        } catch (error) {
+          console.error("Failed to clear highlight:", error);
+        }
+      }
+    },
+    [ensureApiAvailable]
+  );
 
   // tileLayer: focus on tileLayer
   const focusOnTileLayer = useCallback(
@@ -28,6 +136,24 @@ export const useDigitalTwinApi = () => {
         await api.tileLayer.focus(ids, distance, flyTime, rotation);
       } catch (error) {
         console.error("Failed to toggle layer visibility:", error);
+        throw error;
+      }
+    },
+    [ensureApiAvailable]
+  );
+
+  const focusActors = useCallback(
+    async (
+      data: { id: string; objectIds: string[]; },
+      distance: number = 1.5,
+      flyTime: number = 0.5,
+      rotation: number[] = [-20, 45, 0]
+    ) => {
+      try {
+        const api = ensureApiAvailable();
+        await api.tileLayer.focusActors(data, distance, flyTime, rotation);
+      } catch (error) {
+        console.error("Failed to focus on actor:", error);
         throw error;
       }
     },
@@ -166,7 +292,7 @@ export const useDigitalTwinApi = () => {
       flyTime: number
     ) => {
       const api = ensureApiAvailable();
-      api.camera.set(x,y,z,pitch,yaw,flyTime);
+      api.camera.set(x, y, z, pitch, yaw, flyTime);
     },
     [ensureApiAvailable]
   );
@@ -288,129 +414,110 @@ export const useDigitalTwinApi = () => {
     [ensureApiAvailable]
   );
 
-  enum MarkerType {
-    ALERT = "ALERT",
-    CAMERA = "CAMERA",
-  }
-
   const createMarker = (
     api: FDApi,
     markerType: MarkerType,
-    // index:number,
-    // coords: Coordinates,
-    // id: string,
     data: any[] //this should be an array of arrays of data for each floor
   ) => {
     const Icon = new Image();
     const IconOnHover = new Image();
+    // marker data
+    let markerProps: any = [];
 
     switch (markerType) {
       case "ALERT":
-        Icon.src = "/assets/icons/warning_512duo_EA3323.png"; //MUST USE PNG
-        IconOnHover.src = "/assets/icons/warning_512solid_EA3323.png"; //MUST USE PNG
+        Icon.src = "/assets/icons/events.png"; //MUST USE PNG
+        IconOnHover.src = "/assets/icons/events512.png"; //MUST USE PNG
+
+        markerProps = data.map((item: any) => {
+          return {
+            id: "alert_" + item.objectUUID,
+            coordinate: item.coordinates,
+            coordinateType: 0, //default 0 is the projection coordinate system, can also be set to latitude and longitude space coordinate system value of 1
+            anchors: [-12, 24], // (-0.5x, y) -> see imageSize
+            range: [0, 5000], //visual range
+            imagePath: Icon.src,
+            // hoverImagePath: AlertIconOnHover.src,
+            imageSize: [32, 32], // the size of the image
+            fixedSize: false, // image fixed size, range of values: false adaptive, near large, far small, true fixed size, default value: false
+            text: item.description, //the text to be displayed
+            useTextAnimation: false, //turn on the text expansion animation effect
+            textRange: [0, 500], //the visible range of the text [near-crop distance, far-crop distance]
+            textOffset: [0, 0], // text offset
+            textBackgroundColor: [0, 0, 0, 0], // text background color
+            fontSize: 10, // font size
+            fontOutlineSize: 1, // font outline size
+            fontColor: "#ffffff",
+            fontOutlineColor: "#000000",
+            priority: 0, // the priority of avoidance
+            occlusionCull: false, // Whether to participate in occlusion culling
+          };
+        });
+
         break;
       case "CAMERA":
         Icon.src = "/assets/icons/cctv.png";
         IconOnHover.src = "/assets/icons/cctv.png";
+
+        //FLATTEN the data to a single array
+        markerProps = data.flat().map((item: any) => {
+          return {
+            id: "camera_" + item.UUID,
+            coordinate: item.location,
+            coordinateType: 0, //default 0 is the projection coordinate system, can also be set to latitude and longitude space coordinate system value of 1
+            anchors: [-12, 24], // (-0.5x, y) -> see imageSize
+            range: [0, 500], //visual range
+            imagePath: Icon.src,
+            // hoverImagePath: AlertIconOnHover.src,
+            imageSize: [32, 32], // the size of the image
+            fixedSize: false, // image fixed size, range of values: false adaptive, near large, far small, true fixed size, default value: false
+            // text: item.AssetName //the text to be displayed
+            useTextAnimation: false, //turn on the text expansion animation effect
+            textRange: [0, 500], //the visible range of the text [near-crop distance, far-crop distance]
+            textOffset: [0, 0], // text offset
+            textBackgroundColor: [0, 0, 0, 0], // text background color
+            fontSize: 10, // font size
+            fontOutlineSize: 1, // font outline size
+            fontColor: "#ffffff",
+            fontOutlineColor: "#000000",
+            popupURL: `https://10.238.30.117/stream.html?id=${item.CameraConfigId}`,
+            popupBackgroundColor: [1.0, 1.0, 1.0, 1], //Popup background color
+            popupSize: [820, 462], //the size of the popup window
+            popupOffset: [0, 0], //offset of the popup
+            showLine: false, //whether to show the vertical traction line below the markup point
+            lineSize: [2, 50], //the width and height of the vertical tractor line [width, height]
+            lineColor: [
+              0.2274509803921569, 0.8156862745098039, 0.9843137254901961, 1,
+            ], //color of vertical traction line
+            lineOffset: [0, 0], //vertical traction line offset
+            autoHidePopupWindow: true, //whether to close the popup window automatically after losing focus
+            autoHeight: false, // Auto determine if there is an object below
+            displayMode: 2, // display mode
+            priority: 0, // the priority of avoidance
+            occlusionCull: false, // Whether to participate in occlusion culling
+          };
+        });
+
         break;
       default:
-        Icon.src = "/assets/icons/warning_512duo_EA3323.png";
-        IconOnHover.src = "/assets/icons/warning_512solid_EA3323.png";
+        Icon.src = "/assets/icons/events.png";
+        IconOnHover.src = "/assets/icons/events512.png";
         break;
     }
-
-    // marker data
-    let markerProps: any = [];
-    // console.log("datassssss", data);
-    //FLATTEN the data to a single array
-    markerProps = data.flat().map((item: any) => {
-      return {
-        id: item.UUID,
-        coordinate: item.location,
-        coordinateType: 0, //default 0 is the projection coordinate system, can also be set to latitude and longitude space coordinate system value of 1
-        anchors: [-12, 24], // (-0.5x, y) -> see imageSize
-        range: [0, 500], //visual range
-        imagePath: Icon.src,
-        // hoverImagePath: AlertIconOnHover.src,
-        imageSize: [24, 24], // the size of the image
-        fixedSize: true, // image fixed size, range of values: false adaptive, near large, far small, true fixed size, default value: false
-        // text: item.AssetName //the text to be displayed
-        useTextAnimation: false, //turn on the text expansion animation effect
-        textRange: [0, 500], //the visible range of the text [near-crop distance, far-crop distance]
-        textOffset: [0, 0], // text offset
-        textBackgroundColor: [0, 0, 0, 0], // text background color
-        fontSize: 10, // font size
-        fontOutlineSize: 1, // font outline size
-        fontColor: "#ffffff",
-        fontOutlineColor: "#000000",
-        popupURL: `https://10.238.30.117/stream.html?id=${item.CameraConfigId}`,
-        popupBackgroundColor: [1.0, 1.0, 1.0, 1], //Popup background color
-        popupSize: [410, 231], //the size of the popup window
-        popupOffset: [0, 0], //offset of the popup
-        showLine: false, //whether to show the vertical traction line below the markup point
-        lineSize: [2, 50], //the width and height of the vertical tractor line [width, height]
-        lineColor: [
-          0.2274509803921569, 0.8156862745098039, 0.9843137254901961, 1,
-        ], //color of vertical traction line
-        lineOffset: [0, 0], //vertical traction line offset
-        autoHidePopupWindow: true, //whether to close the popup window automatically after losing focus
-        autoHeight: false, // Auto determine if there is an object below
-        displayMode: 2, // display mode
-        priority: 0, // the priority of avoidance
-        occlusionCull: false, // Whether to participate in occlusion culling
-      };
-    });
-
-    // Construct marker with popup window
-    // let o = {
-    //   id: id,
-    //   coordinate: [coords.x, coords.y, coords.z], //coordinate position
-    //   coordinateType: 0, //default 0 is the projection coordinate system, can also be set to latitude and longitude space coordinate system value of 1
-    //   anchors: [-32, 64], //Anchors control the overall offset of the marker
-    //   range: [0, 1000], //visual range
-
-    //   imagePath: Icon.src,
-    //   // hoverImagePath: AlertIconOnHover.src,
-    //   imageSize: [64, 64], // the size of the image
-    //   fixedSize: true, // image fixed size, range of values: false adaptive, near large, far small, true fixed size, default value: false
-
-    //   text: assetName ? assetName : markerType + index, //the text to be displayed
-    //   useTextAnimation: false, //turn on the text expansion animation effect
-    //   textRange: [0, 10000], //the visible range of the text [near-crop distance, far-crop distance]
-    //   textOffset: [0, 0], // text offset
-    //   textBackgroundColor: [0, 0, 0, 0], // text background color
-    //   fontSize: 10, // font size
-    //   fontOutlineSize: 1, // font outline size
-    //   fontColor: "#ffffff",
-    //   fontOutlineColor: "#000000",
-
-    //   // popupURL: "http://www.google.com",
-    //   popupBackgroundColor: [1.0, 1.0, 1.0, 1], //Popup background color
-    //   popupSize: [600, 580], //the size of the popup window
-    //   popupOffset: [0, 0], //offset of the popup
-
-    //   showLine: false, //whether to show the vertical traction line below the markup point
-    //   lineSize: [2, 50], //the width and height of the vertical tractor line [width, height]
-    //   lineColor: [
-    //     0.2274509803921569, 0.8156862745098039, 0.9843137254901961, 1,
-    //   ], //color of vertical traction line
-    //   lineOffset: [0, 0], //vertical traction line offset
-
-    //   autoHidePopupWindow: true, //whether to close the popup window automatically after losing focus
-    //   autoHeight: false, // Auto determine if there is an object below
-    //   displayMode: 2, // display mode
-    //   priority: 0, // the priority of avoidance
-    //   occlusionCull: false, // Whether to participate in occlusion culling
-    // };
     api.marker.add(markerProps);
   };
 
   return {
-    // Layer Management
+    // tileLayer Management
     toggleLayerVisibility,
     setStyleForTreeLayers,
     setXrayForLayers,
     focusOnTileLayer,
+    focusActors,
+    highlightActorWithColor,
+    stopHighlightAllActors,
+    startBlinkingHighlight,
+    stopBlinkingHighlight,
 
     // Animation Control
     playAnimation,

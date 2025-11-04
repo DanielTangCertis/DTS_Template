@@ -1,12 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode } from "react";
 import { AnimationItem } from "@/components/AnimatedTours/AnimatedTours";
 import { LayerTreeItem } from "@/components/LayerTree/LayerTree";
-import {
-  Coordinates,
-  AlertsCollection,
-  AlertDataType,
-  AlertStatus,
-} from "@/types/digitalTwin.types";
 
 interface DigitalTwinState {
   playerIsReady: boolean;
@@ -22,31 +16,20 @@ interface DigitalTwinState {
     position: { x: number; y: number };
   } | null;
   camOrbitTimer: any;
-  alertCoordinates: Coordinates[];
   alertIDs: string[];
-  // CCTVCoordinates: Coordinates[];
   CCTVIDs: string[];
 }
 
-// Export the action type so digitalTwinUtils can use it
 export type DigitalTwinAction =
   | { type: "SET_READY_STATE"; payload: boolean }
   | { type: "SET_LAYER_TREE"; payload: LayerTreeItem[] }
   | { type: "SET_ANIMATION_LIST"; payload: AnimationItem[] }
   | { type: "SET_CAMERA_ORBIT"; payload: boolean }
-  // | {
-  //     type: "SET_CCTV_COORDINATES";
-  //     payload: Coordinates[];
-  //   }
   | {
       type: "SET_CCTV_IDs";
       payload: string[];
     }
   | {
-      type: "SET_ALERT_COORDINATES";
-      payload: Coordinates[];
-    }
-      | {
       type: "SET_ALERT_IDs";
       payload: string[];
     }
@@ -65,14 +48,12 @@ const initialState: DigitalTwinState = {
   animationList: [],
   isCameraInOrbit: true,
   coordsForCameraOrbit: [34518, 33786.525, 2.95], //[34532, 33716.5, 60]
-  xrayColor: [0, 0, 1, 0.25], //blue， alt blue: [0.29019607843137253, 0.2725490196078431, 1, 0.005]
+  xrayColor: [1, 1, 1, 0.04], // blue: [0, 0, 1, 0.25]， alt blue: [0.29019607843137253, 0.2725490196078431, 1, 0.005]
   isAlertMarkersShown: false,
   isCCTVMarkersShown: false,
   activeAlertCard: null,
   camOrbitTimer: 1000000,
-  alertCoordinates: [],
   alertIDs: [],
-  // CCTVCoordinates: [],
   CCTVIDs: [],
 };
 
@@ -99,12 +80,8 @@ const digitalTwinReducer = (
       return { ...state, activeAlertCard: null };
     case "SET_ORBIT_TIMER":
       return { ...state, camOrbitTimer: action.payload };
-    case "SET_ALERT_COORDINATES":
-      return { ...state, alertCoordinates: action.payload };
     case "SET_ALERT_IDs":
       return { ...state, alertIDs: action.payload };
-    // case "SET_CCTV_COORDINATES":
-    //   return { ...state, CCTVCoordinates: action.payload };
     case "SET_CCTV_IDs":
       return { ...state, CCTVIDs: action.payload };
     default:
