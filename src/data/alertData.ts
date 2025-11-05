@@ -14,7 +14,7 @@ export const alertData = [
         {
           objectUUIDs: ["fa2a455d-f8bd-49de-9d7d-31f5cc7ac01c-029fa00d"],
           tileLayerID: "5C16D3AD4207E80AA83362A1AEEA33CA",
-          description: "Chilled Water Return Valve",
+          assetName: "Chilled Water Return Valve",
           location: "PLGN - 2ND STOREY",
           coordinates: [34553.980313, 33813.451562, 9.621907],
         },
@@ -54,14 +54,14 @@ export const alertData = [
             "9dd03043-eec7-4ab9-b7b5-7189fb854f06-024dc58e",
           ],
           tileLayerID: "5C16D3AD4207E80AA83362A1AEEA33CA",
-          description: "Ducts",
+          assetName: "Ducts",
           location: "PLGN - 2ND STOREY",
           coordinates: [34548.325937, 33805.999062, 9.96], //based on 8f1cc657-9a71-41b0-8182-a23f33cd1f9c-0278f181
         },
         {
           objectUUIDs: ["e4e62d3b-1903-4e79-8cf9-01c37a2e6818-0281f767"],
           tileLayerID: "5C16D3AD4207E80AA83362A1AEEA33CA",
-          description: "SBM Exhaust Duct",
+          assetName: "SBM Exhaust Duct",
           location: "PLGN - 2ND STOREY",
           coordinates: [34552.025625, 33799.544062, 9.2988],
         },

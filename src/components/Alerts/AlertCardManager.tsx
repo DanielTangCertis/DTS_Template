@@ -1,19 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
+import { AlertCard, AffectedItem } from "./AlertCard";
+import { alertData } from "@/data/alertData";
+import { AlertCategory } from "@/types/digitalTwin.types";
+import { mapCategoryToTilelayerIDs } from "@/data/tileLayerData";
 import { useDigitalTwinService } from "@/services/DigitalTwinService";
 import { useDigitalTwinContext } from "@/contexts/DigitalTwinContext";
-import { AlertCard } from "./AlertCard";
-import { alertData } from "@/data/alertData";
-import { mapCategoryToTilelayerIDs } from "@/data/tileLayerData";
 import { useDigitalTwinApi } from "@/hooks/useDigitalTwinApi";
-import { AlertCategory } from "@/types/digitalTwin.types";
-
-interface AffectedItem {
-  objectUUIDs: string[];
-  tileLayerID: string;
-  description: string;
-  location: string;
-  coordinates: number[];
-}
 
 export const AlertCardManager: React.FC = () => {
   const { onAlertCardShow } = useDigitalTwinService();
@@ -38,8 +30,14 @@ export const AlertCardManager: React.FC = () => {
 
   // Track current display values
   const [currentDisplay, setCurrentDisplay] = useState<{
-    description: string;
+    assetName: string;
     location: string;
+  } | null>(null);
+
+  // save the last position of the card before closing
+  const [savedCardPosition, setSavedCardPosition] = useState<{
+    x: number;
+    y: number;
   } | null>(null);
 
   // Subscribe to alert card show events
@@ -47,16 +45,19 @@ export const AlertCardManager: React.FC = () => {
     const unsubscribe = onAlertCardShow((alertKey, position) => {
       const objectUUID = alertKey.replace("alert_", "");
 
+      // Use saved position if available, otherwise use center position
+      const displayPosition = savedCardPosition || position;
+
       dispatch({
         type: "SHOW_ALERT_CARD",
-        payload: { alertKey: objectUUID, position },
+        payload: { alertKey: objectUUID, position: displayPosition },
       });
 
       // Get alert data and set initial display (main item selected by default)
       const alert = alertData.find((a) => a.objectUUID === objectUUID);
       if (alert) {
         setCurrentDisplay({
-          description: alert.description,
+          assetName: alert.assetName,
           location: alert.location,
         });
         setSelectedItem({ type: "main", index: 0 });
@@ -85,13 +86,7 @@ export const AlertCardManager: React.FC = () => {
     });
 
     return unsubscribe;
-  }, [
-    onAlertCardShow,
-    dispatch,
-    setXrayForLayers,
-    xrayColor,
-    startBlinkingHighlight,
-  ]);
+  }, [onAlertCardShow, dispatch, savedCardPosition, xrayColor]);
 
   const handleAffectedItemClick = (
     item: AffectedItem,
@@ -103,25 +98,14 @@ export const AlertCardManager: React.FC = () => {
     // 1. Update selected button state
     setSelectedItem({ type, index });
 
-    // 2. Update description and location display
+    // 2. Update assetName and location display
     setCurrentDisplay({
-      description: item.description,
+      assetName: item.assetName,
       location: item.location,
     });
 
     // 3. Focus camera on the affected object
     focusActors({ id: item.tileLayerID, objectIds: item.objectUUIDs });
-
-    // if (item.coordinates && item.coordinates.length >= 3) {
-    //   setCamera(
-    //     item.coordinates[0], // x
-    //     item.coordinates[1], // y
-    //     item.coordinates[2] + 1, // z offset away from the screen slightly
-    //     -12.962612,          // pitch
-    //     145.627472,          // yaw
-    //     0                     // flyTime
-    //   );
-    // }
 
     // 4. Stop current blinking and start new one
     stopBlinkingHighlight(highlightTimerRef, false); // Don't clear highlights yet
@@ -133,6 +117,11 @@ export const AlertCardManager: React.FC = () => {
       [0.75, 0.05, 0.05, 0], // off color
       1000 // interval
     );
+  };
+
+  // Handle dragging alert card
+  const handlePositionChange = (newPosition: { x: number; y: number }) => {
+    setSavedCardPosition(newPosition);
   };
 
   // Handle closing alert card
@@ -170,7 +159,7 @@ export const AlertCardManager: React.FC = () => {
     const mainItem: AffectedItem = {
       objectUUIDs: [alert.objectUUID],
       tileLayerID: alert.tileLayerID,
-      description: alert.description,
+      assetName: alert.assetName,
       location: alert.location,
       coordinates: alert.coordinates,
     };
@@ -184,6 +173,7 @@ export const AlertCardManager: React.FC = () => {
         selectedItem={selectedItem}
         onClose={handleClose}
         onAffectedItemClick={handleAffectedItemClick}
+        onPositionChange={handlePositionChange}
       />
     );
   }

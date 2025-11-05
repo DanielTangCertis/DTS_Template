@@ -1,32 +1,61 @@
 import React from "react";
-import { useRef, useEffect, useState } from "react";
-import { Box, Typography, styled, IconButton, Button } from "@mui/material";
+import { useRef, useState, useEffect, useCallback } from "react";
+import {
+  Box,
+  Typography,
+  styled,
+  IconButton,
+  Button,
+  Tooltip,
+} from "@mui/material";
+import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { AlertStatus, AlertCategory } from "@/types/digitalTwin.types";
 
 const StyledAlertCard = styled(Box)({
   backgroundColor: "#000000",
   color: "#ffffff",
-  padding: "16px 20px",
-  borderRadius: "8px",
+  padding: "1rem 1.25rem",
+  borderRadius: "0.5rem",
   border: "1px solid rgba(255, 255, 255, 0.2)",
-  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)",
-  minWidth: "320px",
-  maxWidth: "450px",
+  boxShadow: "0 0.25rem 0.75rem rgba(0, 0, 0, 0.5)",
+  minWidth: "20rem",
+  maxWidth: "28rem",
+  maxHeight: "50vh",
+  overflowY: "auto",
   zIndex: 1000,
   pointerEvents: "auto",
   fontFamily: "General Sans, Arial, sans-serif",
   position: "fixed",
+
+  // Custom scrollbar styling
+  "&::-webkit-scrollbar": {
+    width: "0.5rem",
+  },
+  "&::-webkit-scrollbar-track": {
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderRadius: "0.25rem",
+  },
+  "&::-webkit-scrollbar-thumb": {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: "0.25rem",
+    "&:hover": {
+      backgroundColor: "rgba(255, 255, 255, 0.3)",
+    },
+  },
 });
 
 const CloseButton = styled(IconButton)({
   position: "absolute",
-  top: "8px",
-  right: "8px",
+  top: "0.5rem",
+  right: "0.5rem",
   padding: 0,
-  width: "24px",
-  height: "24px",
+  width: "1.5rem",
+  height: "1.5rem",
+  minWidth: "1.5rem",
+  color: "#fff",
+  transition: "transform 0.3s", // Match Header.tsx transition timing
   "&:hover": {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    transform: "scale(1.2)", // Match Header.tsx 20% scale increase
   },
 });
 
@@ -36,11 +65,33 @@ const CloseIcon = styled("img")({
   display: "block",
 });
 
+const DragHandle = styled(Box)({
+  position: "absolute",
+  top: "0.5rem",
+  left: "0.5rem",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  cursor: "grab",
+  color: "rgba(255, 255, 255, 0.5)",
+  transition: "color 0.2s",
+  padding: "0.25rem",
+  borderRadius: "0.25rem",
+  "&:hover": {
+    color: "rgba(255, 255, 255, 0.8)",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+  },
+  "&:active": {
+    cursor: "grabbing",
+    color: "#7afafe",
+  },
+});
+
 const StatusChip = styled(Box)<{ status: AlertStatus }>(({ status }) => ({
   display: "inline-block",
-  padding: "4px 12px",
-  borderRadius: "4px",
-  fontSize: "12px",
+  padding: "0.25rem 0.75rem",
+  borderRadius: "0.25rem",
+  fontSize: "0.75rem",
   fontWeight: "bold",
   backgroundColor: status === AlertStatus.UNASSIGNED ? "#ff4444" : "#ff9800",
   color: "#ffffff",
@@ -50,36 +101,38 @@ const StatusChip = styled(Box)<{ status: AlertStatus }>(({ status }) => ({
 const CategoryBadge = styled(Box)({
   display: "inline-flex",
   alignItems: "center",
-  gap: "6px",
-  padding: "4px 8px",
-  borderRadius: "4px",
+  gap: "0.375rem",
+  padding: "0.25rem 0.5rem",
+  borderRadius: "0.25rem",
   backgroundColor: "rgba(255, 255, 255, 0.1)",
-  fontSize: "11px",
+  fontSize: "0.6875rem",
   fontWeight: "bold",
   fontFamily: "General Sans, Arial, sans-serif",
 });
 
 const CategoryIcon = styled("img")({
-  width: "16px",
-  height: "16px",
+  width: "1rem",
+  height: "1rem",
   display: "block",
+  flexShrink: 0,
 });
 
-const AffectedEquipmentButton = styled(Button)<{ selected?: boolean }>(
+const AffectedEquipmentButton = styled(Button)<{ selected: boolean }>(
   ({ selected }) => ({
     textTransform: "none",
-    fontSize: "11px",
-    padding: "6px 10px",
-    margin: "4px",
+    fontSize: "0.6875rem",
+    padding: "0.375rem 0.625rem",
+    margin: "0.25rem",
     backgroundColor: selected ? "#ff9800" : "rgba(255, 255, 255, 0.1)",
     color: "#ffffff",
     border: selected
       ? "1px solid #ff9800"
       : "1px solid rgba(255, 255, 255, 0.2)",
-    borderRadius: "4px",
+    borderRadius: "0.25rem",
     fontFamily: "General Sans, Arial, sans-serif",
     justifyContent: "center",
     textAlign: "center",
+    minHeight: "2rem",
     "&:hover": {
       backgroundColor: selected ? "#ff9800" : "rgba(255, 255, 255, 0.2)",
       border: selected
@@ -90,18 +143,18 @@ const AffectedEquipmentButton = styled(Button)<{ selected?: boolean }>(
 );
 
 const RowHeader = styled(Typography)({
-  fontSize: "12px",
+  fontSize: "0.75rem",
   fontWeight: "bold",
   color: "rgba(255, 255, 255, 0.9)",
-  marginBottom: "4px",
+  marginBottom: "0.25rem",
   fontFamily: "General Sans, Arial, sans-serif",
   textAlign: "left",
 });
 
-interface AffectedItem {
+export interface AffectedItem {
   objectUUIDs: string[];
   tileLayerID: string;
-  description: string;
+  assetName: string;
   location: string;
   coordinates: number[];
 }
@@ -126,7 +179,7 @@ interface AlertCardProps {
   mainItem: AffectedItem;
   position: { x: number; y: number };
   currentDisplay: {
-    description: string;
+    assetName: string;
     location: string;
   } | null;
   selectedItem: {
@@ -139,8 +192,10 @@ interface AlertCardProps {
     type: "upstream" | "main" | "downstream",
     index: number
   ) => void;
+  onPositionChange?: (position: { x: number; y: number }) => void;
 }
 
+// Helper function to get category icon path
 const getCategoryIcon = (category: AlertCategory): string => {
   return `/assets/icons/${category}.svg`;
 };
@@ -153,35 +208,99 @@ export const AlertCard: React.FC<AlertCardProps> = ({
   selectedItem,
   onClose,
   onAffectedItemClick,
+  onPositionChange,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [buttonSize, setButtonSize] = useState(24);
 
-  useEffect(() => {
-    if (cardRef.current) {
-      const height = cardRef.current.offsetHeight;
-      setButtonSize(height * 0.1);
-    }
-  }, []);
-
-  // Use currentDisplay if available, otherwise fall back to alert data
-  const displayDescription = currentDisplay?.description || alert.description;
+  // Use currentDisplay if available, otherwise use alert data
+  const displayAssetName = currentDisplay?.assetName || alert.assetName;
   const displayLocation = currentDisplay?.location || alert.location;
+
+  // for drag state
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [currentPosition, setCurrentPosition] = useState(position);
+
+  // Sync position with prop changes
+  useEffect(() => {
+    setCurrentPosition(position);
+  }, [position]);
+
+  // Handle drag start
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.button !== 0) return; // Only left mouse button
+
+      setIsDragging(true);
+      setDragOffset({
+        x: e.clientX - currentPosition.x,
+        y: e.clientY - currentPosition.y,
+      });
+      e.stopPropagation();
+    },
+    [currentPosition]
+  );
+
+  // Handle dragging
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newPosition = {
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y,
+      };
+      setCurrentPosition(newPosition);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      // Save final position
+      if (onPositionChange) {
+        onPositionChange(currentPosition);
+      }
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging, dragOffset, currentPosition, onPositionChange]);
 
   return (
     <StyledAlertCard
       ref={cardRef}
       sx={{
-        left: `${position.x + 10}px`,
-        top: `${position.y + 10}px`,
+        left: `${currentPosition.x}px`,
+        top: `${currentPosition.y}px`,
+        cursor: isDragging ? "grabbing" : "default",
       }}
     >
-      {/* Header with Category and Close Button */}
+      <DragHandle onMouseDown={handleMouseDown}>
+        <DragIndicatorIcon fontSize="small" />
+      </DragHandle>
+      <Tooltip title="Return to overview" placement="top">
+        <CloseButton
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose?.();
+          }}
+          aria-label="Close alert"
+        >
+          <CloseIcon src="/assets/icons/cancel_filled_FFFFFF.svg" alt="Close" />
+        </CloseButton>
+      </Tooltip>
+
+      {/* Category Badge */}
       <Box
         sx={{
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "top",
+          flexDirection: "row",
+          justifyContent: "left",
+          marginBottom: "0.75rem",
         }}
       >
         <CategoryBadge>
@@ -191,70 +310,57 @@ export const AlertCard: React.FC<AlertCardProps> = ({
           />
           <span>{alert.category}</span>
         </CategoryBadge>
-        <CloseButton
-          sx={{ width: buttonSize, height: buttonSize }}
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose?.();
-          }}
-          aria-label="Close alert"
-        >
-          <CloseIcon src="/assets/icons/cancel_filled_FFFFFF.svg" alt="Close" />
-        </CloseButton>
       </Box>
-
-      {/* Description and Asset Name */}
-      <Box
-        sx={{
-          justifyContent: "start",
-          alignItems: "center",
-          marginTop: "12px",
-          marginBottom: "12px",
-        }}
-      >
+      <Box>
+        {/* Description */}
         <Typography
           variant="h6"
           sx={{
-            fontSize: "16px",
+            fontSize: "1rem",
             fontWeight: "bold",
             fontFamily: "General Sans, Arial, sans-serif",
-            paddingRight: "32px",
+            paddingRight: "2rem",
+            lineHeight: 1.3,
           }}
         >
-          {displayDescription}
+          {alert.description}
         </Typography>
+
+        {/* Asset Name */}
         <Typography
           variant="body2"
           sx={{
-            fontSize: "13px",
-            color: "rgba(255, 255, 255, 0.9)",
+            fontSize: "0.8125rem",
+            color: "#ff9800",
             fontFamily: "General Sans, Arial, sans-serif",
             fontWeight: "500",
+            marginBottom: "0.75rem",
           }}
         >
-          {alert.assetName}
+          {displayAssetName}
         </Typography>
       </Box>
 
-      {/* Status and Location */}
+      {/* Status and Location Section */}
       <Box
         sx={{
           display: "flex",
+          flexDirection: "row",
+          gap: "0.75rem",
+          marginBottom: "1rem",
           justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "16px",
-          gap: "12px",
         }}
       >
         <Box>
           <Typography
             variant="body2"
             sx={{
-              fontSize: "12px",
+              fontSize: "0.75rem",
               color: "rgba(255, 255, 255, 0.7)",
               fontFamily: "General Sans, Arial, sans-serif",
               flexShrink: 1,
               textAlign: "start",
+              marginBottom: "0.25rem",
             }}
           >
             status:
@@ -265,11 +371,12 @@ export const AlertCard: React.FC<AlertCardProps> = ({
           <Typography
             variant="body2"
             sx={{
-              fontSize: "12px",
+              fontSize: "0.75rem",
               color: "rgba(255, 255, 255, 0.7)",
               fontFamily: "General Sans, Arial, sans-serif",
               flexShrink: 1,
               textAlign: "start",
+              marginBottom: "0.25rem",
             }}
           >
             location:
@@ -277,7 +384,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
           <Typography
             variant="body2"
             sx={{
-              fontSize: "12px",
+              fontSize: "0.75rem",
               color: "rgba(255, 255, 255, 0.7)",
               fontFamily: "General Sans, Arial, sans-serif",
               flexShrink: 1,
@@ -292,14 +399,14 @@ export const AlertCard: React.FC<AlertCardProps> = ({
       {/* Affected Equipment - 3 Rows Layout */}
       {(alert.affected.upstream.length > 0 ||
         alert.affected.downstream.length > 0) && (
-        <Box sx={{ marginTop: "16px" }}>
+        <Box sx={{ marginTop: "1rem" }}>
           <Typography
             variant="subtitle2"
             sx={{
-              fontSize: "13px",
+              fontSize: "0.8125rem",
               fontWeight: "bold",
               color: "rgba(255, 255, 255, 0.9)",
-              marginBottom: "8px",
+              marginBottom: "0.5rem",
               fontFamily: "General Sans, Arial, sans-serif",
             }}
           >
@@ -309,20 +416,20 @@ export const AlertCard: React.FC<AlertCardProps> = ({
           <Box
             sx={{
               border: "1px solid rgba(255, 255, 255, 0.2)",
-              borderRadius: "4px",
-              padding: "8px",
+              borderRadius: "0.25rem",
+              padding: "0.5rem",
             }}
           >
             {/* Upstream Row */}
             <Box
               sx={{
                 borderBottom: "1px solid rgba(255, 255, 255, 0.2)",
-                paddingBottom: "8px",
-                marginBottom: "8px",
+                paddingBottom: "0.5rem",
+                marginBottom: "0.5rem",
               }}
             >
               <RowHeader>Upstream</RowHeader>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
                 {alert.affected.upstream.length > 0 ? (
                   alert.affected.upstream.map((item, index) => (
                     <AffectedEquipmentButton
@@ -336,16 +443,16 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                       }
                       size="small"
                     >
-                      {item.description}
+                      {item.assetName}
                     </AffectedEquipmentButton>
                   ))
                 ) : (
                   <Typography
                     sx={{
-                      fontSize: "11px",
+                      fontSize: "0.6875rem",
                       color: "rgba(255, 255, 255, 0.5)",
                       fontFamily: "General Sans, Arial, sans-serif",
-                      padding: "8px",
+                      padding: "0.5rem",
                     }}
                   >
                     None
@@ -358,12 +465,12 @@ export const AlertCard: React.FC<AlertCardProps> = ({
             <Box
               sx={{
                 borderBottom: "1px solid rgba(255, 255, 255, 0.2)",
-                paddingBottom: "8px",
-                marginBottom: "8px",
+                paddingBottom: "0.5rem",
+                marginBottom: "0.5rem",
               }}
             >
               <RowHeader>Main</RowHeader>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
                 <AffectedEquipmentButton
                   selected={
                     selectedItem?.type === "main" && selectedItem?.index === 0
@@ -371,7 +478,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                   onClick={() => onAffectedItemClick?.(mainItem, "main", 0)}
                   size="small"
                 >
-                  {alert.description}
+                  {alert.assetName}
                 </AffectedEquipmentButton>
               </Box>
             </Box>
@@ -379,7 +486,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
             {/* Downstream Row */}
             <Box>
               <RowHeader>Downstream</RowHeader>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
                 {alert.affected.downstream.length > 0 ? (
                   alert.affected.downstream.map((item, index) => (
                     <AffectedEquipmentButton
@@ -393,16 +500,16 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                       }
                       size="small"
                     >
-                      {item.description}
+                      {item.assetName}
                     </AffectedEquipmentButton>
                   ))
                 ) : (
                   <Typography
                     sx={{
-                      fontSize: "11px",
+                      fontSize: "0.6875rem",
                       color: "rgba(255, 255, 255, 0.5)",
                       fontFamily: "General Sans, Arial, sans-serif",
-                      padding: "8px",
+                      padding: "0.5rem",
                     }}
                   >
                     None
