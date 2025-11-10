@@ -109,6 +109,13 @@ export interface FDApi {
       flyTime?: number,
       rotation?: number[]
     ) => Promise<void>;
+    focusActor: (
+      id: string,
+      objectId: string,
+      distance?: number,
+      flyTime?: number,
+      rotation?: number[]
+    ) => Promise<void>;
     highlightActorWithColor: (
       id: string,
       objectId: string | string[],

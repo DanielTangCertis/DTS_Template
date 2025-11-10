@@ -20,7 +20,7 @@ const StyledAlertCard = styled(Box)({
   boxShadow: "0 0.25rem 0.75rem rgba(0, 0, 0, 0.5)",
   minWidth: "20rem",
   maxWidth: "28rem",
-  maxHeight: "50vh",
+  // maxHeight: "50vh",
   overflowY: "auto",
   zIndex: 1000,
   pointerEvents: "auto",
@@ -151,6 +151,26 @@ const RowHeader = styled(Typography)({
   textAlign: "left",
 });
 
+const CreateCWOButton = styled(Button)({
+  textTransform: "none",
+  fontSize: "0.875rem",
+  padding: "0.625rem 1rem",
+  marginTop: "1rem",
+  backgroundColor: "rgba(255, 255, 255, 0.1)",
+  color: "#ffffff",
+  border: "1px solid rgba(255, 255, 255, 0.2)",
+  borderRadius: "0.25rem",
+  fontFamily: "General Sans, Arial, sans-serif",
+  fontWeight: "bold",
+  width: "100%",
+  justifyContent: "center",
+  textAlign: "center",
+  "&:hover": {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    border: "1px solid rgba(255, 255, 255, 0.3)",
+  },
+});
+
 export interface AffectedItem {
   objectUUIDs: string[];
   tileLayerID: string;
@@ -193,6 +213,7 @@ interface AlertCardProps {
     index: number
   ) => void;
   onPositionChange?: (position: { x: number; y: number }) => void;
+  onCreateCWO?: () => void;
 }
 
 // Helper function to get category icon path
@@ -209,6 +230,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
   onClose,
   onAffectedItemClick,
   onPositionChange,
+  onCreateCWO,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -520,6 +542,14 @@ export const AlertCard: React.FC<AlertCardProps> = ({
           </Box>
         </Box>
       )}
+      <CreateCWOButton
+        onClick={() => {
+          console.log("Create CWO clicked for alert:", alert.description);
+          onCreateCWO?.();
+        }}
+      >
+        CREATE CWO
+      </CreateCWOButton>
     </StyledAlertCard>
   );
 };

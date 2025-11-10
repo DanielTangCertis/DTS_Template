@@ -206,45 +206,25 @@ class DigitalTwinService {
             0.5,
             [-12.962612, 145.627472, 0]
           );
-          // const objectUUID = markerID.replace("alert_", "");
           if (markerID.startsWith("alert")) {
-            // let mouseCoords: number[] = eventData.MouseClickPoint;
             // Delay to allow marker focus animation to complete
             setTimeout(async () => {
               try {
                 // Calculate screen center coordinates
-                const screenCenterX = window.innerWidth / 2;
-                const screenCenterY = window.innerHeight / 2;
+                const cardXCoord = window.innerWidth * 0.75;
+                const cardYCoord = window.innerHeight * 0.25;
 
                 console.log(
-                  `Screen center coordinates: x=${screenCenterX}, y=${screenCenterY}`
+                  `Screen center coordinates: x=${cardXCoord}, y=${cardYCoord}`
                 );
                 console.log(`Alert marker key: ${markerID}`);
 
                 // Notify listeners to show the alert card at screen center
                 this.notifyAlertCardListeners(markerID, {
-                  x: screenCenterX,
-                  y: screenCenterY,
+                  x: cardXCoord,
+                  y: cardYCoord,
                 });
 
-                // let response = await this.safeApiCall(() => {
-                //   return window.fdapi.coord.world2Screen(
-                //     mouseCoords[0],
-                //     mouseCoords[1],
-                //     mouseCoords[2]
-                //   );
-                // });
-                // if (response.result === 0 && response.screenPosition) {
-                //   const [screenX, screenY] = response.screenPosition;
-                //   console.log(`Screen coordinates: x=${screenX}, y=${screenY}`);
-                //   console.log(`Alert marker key: ${markerID}`);
-
-                //   // Notify listeners to show the alert card
-                //   this.notifyAlertCardListeners(markerID, {
-                //     x: screenX,
-                //     y: screenY,
-                //   });
-                // }
               } catch (error) {
                 console.error(
                   "Failed to convert world to screen coordinates:",

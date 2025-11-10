@@ -3,6 +3,7 @@ import { AlertCard, AffectedItem } from "./AlertCard";
 import { alertData } from "@/data/alertData";
 import { AlertCategory } from "@/types/digitalTwin.types";
 import { mapCategoryToTilelayerIDs } from "@/data/tileLayerData";
+import { CreateCWODialog } from "../CreateCWODialog/CreateCWODialog";
 import { useDigitalTwinService } from "@/services/DigitalTwinService";
 import { useDigitalTwinContext } from "@/contexts/DigitalTwinContext";
 import { useDigitalTwinApi } from "@/hooks/useDigitalTwinApi";
@@ -15,6 +16,7 @@ export const AlertCardManager: React.FC = () => {
     startBlinkingHighlight,
     stopBlinkingHighlight,
     setCamera,
+    focusActor,
     focusActors,
   } = useDigitalTwinApi();
   const { xrayColor } = state;
@@ -39,6 +41,9 @@ export const AlertCardManager: React.FC = () => {
     x: number;
     y: number;
   } | null>(null);
+
+  // Track CWO Dialog
+  const [showCWODialog, setShowCWODialog] = useState(false);
 
   // Subscribe to alert card show events
   useEffect(() => {
@@ -105,7 +110,11 @@ export const AlertCardManager: React.FC = () => {
     });
 
     // 3. Focus camera on the affected object
-    focusActors({ id: item.tileLayerID, objectIds: item.objectUUIDs });
+    // if (item.objectUUIDs.length == 1) {
+    //   focusActor(item.tileLayerID, item.objectUUIDs[0]);
+    // } else {
+      focusActors({ id: item.tileLayerID, objectIds: item.objectUUIDs });
+    // }
 
     // 4. Stop current blinking and start new one
     stopBlinkingHighlight(highlightTimerRef, false); // Don't clear highlights yet
@@ -145,6 +154,10 @@ export const AlertCardManager: React.FC = () => {
     setCamera(34738.245, 34043.015312, 93.53667, -14.999996, 130.650467, 0);
   };
 
+  const handleCreateCWO = () => {
+    setShowCWODialog(true);
+  };
+
   // Render
   if (state.activeAlertCard !== null) {
     const activeAlert = state.activeAlertCard;
@@ -165,16 +178,24 @@ export const AlertCardManager: React.FC = () => {
     };
 
     return (
-      <AlertCard
-        alert={alert}
-        mainItem={mainItem}
-        position={activeAlert.position}
-        currentDisplay={currentDisplay}
-        selectedItem={selectedItem}
-        onClose={handleClose}
-        onAffectedItemClick={handleAffectedItemClick}
-        onPositionChange={handlePositionChange}
-      />
+      <>
+        <AlertCard
+          alert={alert}
+          mainItem={mainItem}
+          position={activeAlert.position}
+          currentDisplay={currentDisplay}
+          selectedItem={selectedItem}
+          onClose={handleClose}
+          onAffectedItemClick={handleAffectedItemClick}
+          onPositionChange={handlePositionChange}
+          onCreateCWO={handleCreateCWO}
+        />
+        <CreateCWODialog
+          open={showCWODialog}
+          onClose={() => setShowCWODialog(false)}
+          alertData={alert}
+        />
+      </>
     );
   }
 

@@ -60,7 +60,7 @@ export const useDigitalTwinApi = () => {
       highlightTimerRef: React.RefObject<number | null>,
       tileLayerID: string,
       objectUUID: string | string[],
-      onColor: number[] = [0.75, 0.05, 0.05, 0.1],
+      onColor: number[] = [0.75, 0.05, 0.05, 0.5],
       offColor: number[] = [0.75, 0.05, 0.05, 0],
       interval: number = 1000
     ) => {
@@ -142,12 +142,43 @@ export const useDigitalTwinApi = () => {
     [ensureApiAvailable]
   );
 
+  const focusActor = useCallback(
+    async (
+      id: string,
+      objectId: string,
+      distance?: number,
+      flyTime?: number,
+      rotation?: number[]
+      // distance: number = 1.5,
+      // flyTime: number = 0.5,
+      // rotation: number[] = [-20, 45, 0]
+    ) => {
+      try {
+        const api = ensureApiAvailable();
+        await api.tileLayer.focusActor(
+          id,
+          objectId,
+          distance,
+          flyTime,
+          rotation
+        );
+      } catch (error) {
+        console.error("Failed to focus on actor:", error);
+        throw error;
+      }
+    },
+    [ensureApiAvailable]
+  );
+
   const focusActors = useCallback(
     async (
-      data: { id: string; objectIds: string[]; },
-      distance: number = 1.5,
-      flyTime: number = 0.5,
-      rotation: number[] = [-20, 45, 0]
+      data: { id: string; objectIds: string[] },
+      distance?: number,
+      flyTime?: number,
+      rotation?: number[]
+      // distance: number = 1.5,
+      // flyTime: number = 0.5,
+      // rotation: number[] = [-20, 45, 0]
     ) => {
       try {
         const api = ensureApiAvailable();
@@ -513,6 +544,7 @@ export const useDigitalTwinApi = () => {
     setStyleForTreeLayers,
     setXrayForLayers,
     focusOnTileLayer,
+    focusActor,
     focusActors,
     highlightActorWithColor,
     stopHighlightAllActors,

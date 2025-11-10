@@ -5,9 +5,9 @@
  * UseHttps: Whether to use HTTPS protocol
  */
 var HostConfig = {
-  IP: "10.60.124.57",
+  IP: "10.1.1.12",
   Port: "8765",
   InstanceId: "1798948163867",
-  Path: "C:/Users/CTS-ENG/AppData/Roaming/DTS Cloud/6.1/SDK",
+  Path: "C:/Users/CTS-ENG/Desktop/PLG/Freedo/20251028/DTS_Cloud_6.1.1028.21002/SDK",
   UseHttps: false,
 };

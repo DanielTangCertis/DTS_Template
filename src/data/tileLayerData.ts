@@ -89,4 +89,20 @@ export const mapCategoryToTilelayerIDs = {
       layerID: "B6F9E26A444A278E7949F08156A8EDA0",
     },
   ],
+  STRUCTURAL: [
+    {
+      layerName: "HX_ST_3DM_PLGN_RVT22",
+      layerID: "B29A9745483965CEB90D88B38DEC024A",
+    },
+    {
+      layerName: "HX_ST_3DM_PLGS_RVT22",
+      layerID: "B61EA5A642B755BE70BBB8A0FBACBF26",
+    },
+  ],
+  FACADE: [
+    {
+      layerName: "HX_FC_3DM_PLGN_RVT22",
+      layerID: "D57E42A443B1EF5150973F9CE5ADB1C1",
+    },
+  ],
 };
