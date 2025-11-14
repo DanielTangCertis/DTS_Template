@@ -1,5 +1,29 @@
 import { AlertStatus, AlertCategory } from "../types/digitalTwin.types";
+
 export const alertData = [
+  {
+    objectUUID: "4707d0be-7250-49c9-9c08-413519803118-027c53b7",
+    tileLayerID: "66DDE6CF40CB884119DBBBB7AEFAD29E",
+    assetName: "PLGN-L1-SY-CAM-21",
+    description: "Intruder Detected",
+    category: AlertCategory.SECURITY,
+    status: AlertStatus.UNASSIGNED,
+    location: "PLGN LOBBY - 1ST STOREY",
+    coordinates: [34549.6945, 33801.359062, 6.365726],
+    affected: {
+      upstream: [],
+      downstream: [
+        {
+          objectUUIDs: ["2fe1e0a6-9770-4515-a832-84c091c5f952-00fb7670"],
+          tileLayerID: "6CFEB7D144BE295A61D541A5EBE0A7AB",
+          assetName: "C2-FL02",
+          description: "Unauthorised Lift Access",
+          location: "PLGN LOBBY - 1ST STOREY",
+          coordinates: [34560.3648125, 33800.688125, 3.652653503417969],
+        },
+      ],
+    },
+  },
   {
     objectUUID: "ff913117-9939-4df0-a49a-6f4e44a9f252-0258b36c",
     tileLayerID: "5C16D3AD4207E80AA83362A1AEEA33CA",

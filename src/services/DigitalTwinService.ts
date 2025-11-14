@@ -12,6 +12,8 @@ import {
   AlertCardListener,
 } from "../types/digitalTwin.types";
 
+import { CARD_CONSTANTS } from "@/components/Alerts/AlertCard";
+
 export enum ConnectionStatus {
   DISCONNECTED = "disconnected",
   INITIALIZING = "initializing",
@@ -210,19 +212,10 @@ class DigitalTwinService {
             // Delay to allow marker focus animation to complete
             setTimeout(async () => {
               try {
-                // Calculate screen center coordinates
-                const cardXCoord = window.innerWidth * 0.75;
-                const cardYCoord = window.innerHeight * 0.25;
-
-                console.log(
-                  `Screen center coordinates: x=${cardXCoord}, y=${cardYCoord}`
-                );
-                console.log(`Alert marker key: ${markerID}`);
-
-                // Notify listeners to show the alert card at screen center
+                // Notify listeners to show the alert card at the initial position specified in CARD_CONSTANTS
                 this.notifyAlertCardListeners(markerID, {
-                  x: cardXCoord,
-                  y: cardYCoord,
+                  x: window.innerWidth*CARD_CONSTANTS.PRIMARY_INITIAL_TOPX,
+                  y: window.innerHeight*CARD_CONSTANTS.PRIMARY_INITIAL_TOPY,
                 });
 
               } catch (error) {

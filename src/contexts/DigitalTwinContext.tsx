@@ -48,7 +48,7 @@ const initialState: DigitalTwinState = {
   animationList: [],
   isCameraInOrbit: true,
   coordsForCameraOrbit: [34518, 33786.525, 2.95], //[34532, 33716.5, 60]
-  xrayColor: [1, 1, 1, 0], // blue: [0, 0, 1, 0.25]， alt blue: [0.29019607843137253, 0.2725490196078431, 1, 0.005]
+  xrayColor: [1, 1, 1, 0.005], // blue: [0, 0, 1, 0.25]， alt blue: [0.29019607843137253, 0.2725490196078431, 1, 0.005]
   isAlertMarkersShown: false,
   isCCTVMarkersShown: false,
   activeAlertCard: null,

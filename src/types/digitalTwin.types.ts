@@ -58,12 +58,6 @@ export interface getObjectIDsResponse {
 }
 [];
 
-// export interface Coordinates {
-//   x: number;
-//   y: number;
-//   z: number;
-// }
-
 export enum MarkerType {
   ALERT = "ALERT",
   CAMERA = "CAMERA",
@@ -204,14 +198,26 @@ export interface FDApi {
     ) => Promise<void>;
     showPopupWindow: (ids: string | string[]) => Promise<void>;
   };
-  coord: {
-    //https://sdk.freedo3d.com/doc/api/Coord.html
-    world2Screen: (
-      x: number,
-      y: number,
-      z: number
-    ) => Promise<World2ScreenResponse>; //screen coordinates
+  odline: {
+    delete: (ids: string | string[]) => Promise<void>;
+    clear: () => Promise<void>;
+    add: (...args: any[]) => Promise<void>;
+    focus: (
+      ids: string | string[],
+      distance?: number,
+      flyTime?: number,
+      rotation?: number[]
+    ) => Promise<void>;
+    setColor: (id: string, newVal: string) => Promise<void>;
   };
+  // coord: {
+  //   //https://sdk.freedo3d.com/doc/api/Coord.html
+  //   world2Screen: (
+  //     x: number,
+  //     y: number,
+  //     z: number
+  //   ) => Promise<World2ScreenResponse>; //screen coordinates
+  // };
 }
 
 // Global Window Interface Extensions

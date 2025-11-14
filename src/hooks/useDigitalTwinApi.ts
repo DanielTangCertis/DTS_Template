@@ -466,7 +466,7 @@ export const useDigitalTwinApi = () => {
             coordinate: item.coordinates,
             coordinateType: 0, //default 0 is the projection coordinate system, can also be set to latitude and longitude space coordinate system value of 1
             anchors: [-12, 24], // (-0.5x, y) -> see imageSize
-            range: [0, 5000], //visual range
+            range: [0, 10000], //visual range [10, 10000]
             imagePath: Icon.src,
             // hoverImagePath: AlertIconOnHover.src,
             imageSize: [32, 32], // the size of the image
@@ -497,7 +497,7 @@ export const useDigitalTwinApi = () => {
             coordinate: item.location,
             coordinateType: 0, //default 0 is the projection coordinate system, can also be set to latitude and longitude space coordinate system value of 1
             anchors: [-12, 24], // (-0.5x, y) -> see imageSize
-            range: [0, 500], //visual range
+            range: [0, 500], //visual range [10, 10000]
             imagePath: Icon.src,
             // hoverImagePath: AlertIconOnHover.src,
             imageSize: [32, 32], // the size of the image
@@ -538,6 +538,107 @@ export const useDigitalTwinApi = () => {
     api.marker.add(markerProps);
   };
 
+  /*OD Lines*/
+  /***
+   * @param startEndPairs - [[[startX1,startY1,startZ1], [endX1,endY1,endZ1]] , [[startX2,startY2,startZ2], [endX2,endY2,endZ2]]...]
+   */
+  const addODLines = useCallback(
+    async (linesConfig: Array<{ id: string; coordinates: number[][] }>) => {
+      try {
+        const api = ensureApiAvailable();
+        let linesToAdd: any = [];
+        linesToAdd = linesConfig.map((config) => {
+          return {
+            id: config.id,
+            coordinates: config.coordinates,
+            color: "RGB(255,0,0)", //Red
+            coordinateType: 0,
+            flowRate: 0.5,
+            intensity: 10,
+            bendDegree: 0.5,
+            tiling: 10,
+            lineThickness: 0.25,
+            flowPointSizeScale: 1,
+            labelSizeScale: 15, //this shows the effect of the radius at start and end points
+
+            lineShape: 1, //0:plane 1:column, default 1
+            lineStyle: 3, //0: Solid Color 1: Arrow, 2: Flowing Point, 3: Dotted Line; Style default value 0 (it is recommended to set Tiling manually when lineStyle is 2 and 3, e.g. set to 1)
+            flowShape: 0, //1 to show the movement from start to end as a sphere
+
+            startPointShape: 0, //1 for sphere
+            endPointShape: 0, //1 for sphere
+            startLabelShape: 1,
+            endLabelShape: 1,
+          };
+        });
+        await api.odline.add(linesToAdd);
+        console.log("Added ODLines");
+      } catch (error) {
+        console.error("Failed to add ODLines:", error);
+        throw error;
+      }
+    },
+    [ensureApiAvailable]
+  );
+
+  const deleteODLines = useCallback(
+    async (ids: string | string[]) => {
+      try {
+        const api = ensureApiAvailable();
+        await api.odline.delete(ids);
+        console.log(`Deleted ODLines: ${ids}`);
+      } catch (error) {
+        console.error("Failed to delete ODLines:", error);
+        throw error;
+      }
+    },
+    [ensureApiAvailable]
+  );
+
+  const clearODLines = useCallback(async () => {
+    try {
+      const api = ensureApiAvailable();
+      await api.odline.clear();
+      console.log("Cleared ODLines");
+    } catch (error) {
+      console.error("Failed to clear ODLines:", error);
+      throw error;
+    }
+  }, [ensureApiAvailable]);
+
+  const focusODLines = useCallback(
+    async (
+      ids: string | string[],
+      distance: number = 0, //0 for autocalculate
+      flyTime: number = 0.5, //0.5 seconds
+      rotation?: number[]
+    ) => {
+      try {
+        const api = ensureApiAvailable();
+        await api.odline.focus(ids, distance, flyTime, rotation);
+        console.log(`Focused on ODLines: ${ids}`);
+      } catch (error) {
+        console.error("Failed to focus on ODLines:", error);
+        throw error;
+      }
+    },
+    [ensureApiAvailable]
+  );
+
+  const setODLineColor = useCallback(
+    async (id: string, newVal: string) => {
+      try {
+        const api = ensureApiAvailable();
+        await api.odline.setColor(id, newVal);
+        console.log(`Set ODLine Color: ${newVal}`);
+      } catch (error) {
+        console.error("Failed to change ODLine color:", error);
+        throw error;
+      }
+    },
+    [ensureApiAvailable]
+  );
+
   return {
     // tileLayer Management
     toggleLayerVisibility,
@@ -574,5 +675,12 @@ export const useDigitalTwinApi = () => {
     toggleMarkersWithState,
     createMarker,
     MarkerType,
+
+    //ODLine
+    addODLines,
+    deleteODLines,
+    clearODLines,
+    focusODLines,
+    setODLineColor,
   };
 };
