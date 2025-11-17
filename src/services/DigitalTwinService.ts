@@ -201,33 +201,29 @@ class DigitalTwinService {
         // MARKERS
         if (eventData.Type == "marker" && eventData.Id) {
           const markerID = eventData.Id; // this is the marker id that was passed to createMarker
-          // window.fdapi.marker.focus(markerID); //auto-calculate distance
-          window.fdapi.marker.focus(
-            markerID,
-            1.5,
-            0.5,
-            [-12.962612, 145.627472, 0]
-          );
-          if (markerID.startsWith("alert")) {
-            // Delay to allow marker focus animation to complete
-            setTimeout(async () => {
-              try {
-                // Notify listeners to show the alert card at the initial position specified in CARD_CONSTANTS
-                this.notifyAlertCardListeners(markerID, {
-                  x: window.innerWidth*CARD_CONSTANTS.PRIMARY_INITIAL_TOPX,
-                  y: window.innerHeight*CARD_CONSTANTS.PRIMARY_INITIAL_TOPY,
-                });
 
-              } catch (error) {
-                console.error(
-                  "Failed to convert world to screen coordinates:",
-                  error
-                );
-              }
-            }, 1000);
-          }
-          else if (markerID.startsWith("camera")) {
+          if (markerID.startsWith("alert")) {
+            try {
+              // Notify listeners to show the alert card at the initial position specified in CARD_CONSTANTS
+              this.notifyAlertCardListeners(markerID, {
+                x: window.innerWidth * CARD_CONSTANTS.PRIMARY_INITIAL_TOPX,
+                y: window.innerHeight * CARD_CONSTANTS.PRIMARY_INITIAL_TOPY,
+              });
+            } catch (error) {
+              console.error(
+                "Failed to convert world to screen coordinates:",
+                error
+              );
+            }
+          } else if (markerID.startsWith("camera")) {
             console.log("showing camera feed...");
+            // window.fdapi.marker.focus(markerID); //auto-calculate distance
+            window.fdapi.marker.focus(
+              markerID,
+              1.5,
+              0.5,
+              [-12.962612, 145.627472, 0]
+            );
             window.fdapi.marker.showPopupWindow(markerID);
           }
         }

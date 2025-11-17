@@ -25,7 +25,7 @@ export const CARD_CONSTANTS = {
   SECONDARY_WIDTH: 18,
   SECONDARY_MIN_WIDTH: 18, // (keep for reference)
   SECONDARY_MAX_WIDTH: 22, // (keep for reference)
-  SECONDARY_HEIGHT: 11.25,
+  SECONDARY_HEIGHT: 12,
 } as const;
 
 // ==================== STYLED COMPONENTS ====================
@@ -93,6 +93,24 @@ const CloseButton = styled(IconButton)({
   "&:hover": {
     transform: "scale(1.2)",
   },
+});
+
+const ZoomButton = styled(IconButton)({
+  padding: 0,
+  width: "2rem",
+  height: "2rem",
+  minWidth: "1.5rem",
+  color: "#fff",
+  transition: "transform 0.3s",
+  "&:hover": {
+    transform: "scale(1.2)",
+  },
+});
+
+const ZoomIcon = styled("img")({
+  width: "100%",
+  height: "100%",
+  objectFit: "contain",
 });
 
 const CloseIcon = styled("img")({
@@ -187,17 +205,17 @@ const RowHeader = styled(Typography)({
   textAlign: "left",
 });
 
-const ActionButton = styled(Button)<{ buttonVariant?: "enabled" | "disabled" }>(
-  ({ buttonVariant = "enabled" }) => ({
+const ActionButton = styled(Button)<{ buttonvariant?: "enabled" | "disabled" }>(
+  ({ buttonvariant = "enabled" }) => ({
     textTransform: "none",
     fontSize: "0.875rem",
     padding: "0.625rem 1rem",
     marginTop: "1rem",
     backgroundColor:
-      buttonVariant === "enabled" ? "#ff9800" : "rgba(255, 255, 255, 0.1)",
+      buttonvariant === "enabled" ? "#ff9800" : "rgba(255, 255, 255, 0.1)",
     color: "#ffffff",
     border:
-      buttonVariant === "enabled"
+      buttonvariant === "enabled"
         ? "1px solid #ff9800"
         : "1px solid rgba(255, 255, 255, 0.2)",
     borderRadius: "0.25rem",
@@ -206,12 +224,12 @@ const ActionButton = styled(Button)<{ buttonVariant?: "enabled" | "disabled" }>(
     width: "100%",
     justifyContent: "center",
     textAlign: "center",
-    cursor: buttonVariant === "enabled" ? "pointer" : "not-allowed",
+    cursor: buttonvariant === "enabled" ? "pointer" : "not-allowed",
     "&:hover": {
       backgroundColor:
-        buttonVariant === "enabled" ? "#ff7700" : "rgba(255, 255, 255, 0.1)",
+        buttonvariant === "enabled" ? "#ff7700" : "rgba(255, 255, 255, 0.1)",
       border:
-        buttonVariant === "enabled"
+        buttonvariant === "enabled"
           ? "1px solid #ff7700"
           : "1px solid rgba(255, 255, 255, 0.2)",
     },
@@ -340,7 +358,7 @@ interface PrimaryAlertCardProps {
     index: number
   ) => void;
   onPositionChange?: (position: { x: number; y: number }) => void;
-  onSubmitToIncidentManagement?: () => void;
+  onViewIncidentDetails?: () => void;
 }
 
 interface SecondaryAlertCardProps {
@@ -357,6 +375,12 @@ interface SecondaryAlertCardProps {
     item: AffectedItem,
     type: "upstream" | "downstream",
     index: number
+  ) => void;
+  onZoomToggle: (
+    item: AffectedItem,
+    type: "upstream" | "downstream",
+    index: number,
+    currentZoomState: boolean
   ) => void;
 }
 
@@ -375,7 +399,15 @@ export const SecondaryAlertCard: React.FC<SecondaryAlertCardProps> = ({
   position,
   onYes,
   onNo,
+  onZoomToggle,
 }) => {
+  const [isZoomedIn, setIsZoomedIn] = useState(false);
+
+  const handleZoomClick = () => {
+    onZoomToggle(item, type, index, isZoomedIn);
+    setIsZoomedIn(!isZoomedIn);
+  };
+
   return (
     <StyledSecondaryCard
       sx={{
@@ -383,26 +415,11 @@ export const SecondaryAlertCard: React.FC<SecondaryAlertCardProps> = ({
         top: `${position.y}px`,
       }}
     >
-      {/* Heading */}
+      {/* Description */}
       <Typography
         variant="h6"
         sx={{
           fontSize: "0.875rem",
-          fontWeight: "bold",
-          fontFamily: "General Sans, Arial, sans-serif",
-          textAlign: "center",
-          marginBottom: "1rem",
-          color: "rgba(255, 255, 255, 0.9)",
-        }}
-      >
-        Merge Alert with Main?
-      </Typography>
-
-      {/* Description */}
-      <Typography
-        variant="body2"
-        sx={{
-          fontSize: "0.8125rem",
           fontWeight: "bold",
           fontFamily: "General Sans, Arial, sans-serif",
           marginBottom: "0.5rem",
@@ -412,31 +429,72 @@ export const SecondaryAlertCard: React.FC<SecondaryAlertCardProps> = ({
         {item.description || "Alert"}
       </Typography>
 
-      {/* Asset Name */}
-      <Typography
-        variant="body2"
+      {/* Asset Name and Location with Zoom Button */}
+      <Box
         sx={{
-          fontSize: "0.75rem",
-          color: "#ff9800",
-          fontFamily: "General Sans, Arial, sans-serif",
-          fontWeight: "500",
-          marginBottom: "0.5rem",
-        }}
-      >
-        {item.assetName}
-      </Typography>
-
-      {/* Location */}
-      <Typography
-        variant="body2"
-        sx={{
-          fontSize: "0.6875rem",
-          color: "rgba(255, 255, 255, 0.7)",
-          fontFamily: "General Sans, Arial, sans-serif",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
           marginBottom: "1rem",
         }}
       >
-        {item.location}
+        {/* Left side: Asset Name and Location */}
+        <Box sx={{ flex: 1 }}>
+          {/* Asset Name */}
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: "0.75rem",
+              color: "#ff9800",
+              fontFamily: "General Sans, Arial, sans-serif",
+              fontWeight: "500",
+              marginBottom: "0.5rem",
+            }}
+          >
+            {item.assetName}
+          </Typography>
+
+          {/* Location */}
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: "0.6875rem",
+              color: "rgba(255, 255, 255, 0.7)",
+              fontFamily: "General Sans, Arial, sans-serif",
+            }}
+          >
+            {item.location}
+          </Typography>
+        </Box>
+
+        {/* Right side: Zoom Button */}
+        <Tooltip title="Focus" placement="bottom">
+          <ZoomButton onClick={handleZoomClick}>
+            <ZoomIcon
+              src={
+                isZoomedIn
+                  ? "/assets/icons/zoom-out.svg"
+                  : "/assets/icons/zoom-in.svg"
+              }
+              alt={isZoomedIn ? "Zoom Out" : "Zoom In"}
+            />
+          </ZoomButton>
+        </Tooltip>
+      </Box>
+
+      {/* Heading */}
+      <Typography
+        variant="subtitle2"
+        sx={{
+          fontSize: "0.8125rem",
+          fontWeight: "bold",
+          fontFamily: "General Sans, Arial, sans-serif",
+          textAlign: "center",
+          marginBottom: "1rem",
+          color: "rgba(255, 255, 255, 0.9)",
+        }}
+      >
+        Merge Alert with Main?
       </Typography>
 
       {/* Yes/No Buttons */}
@@ -451,7 +509,6 @@ export const SecondaryAlertCard: React.FC<SecondaryAlertCardProps> = ({
     </StyledSecondaryCard>
   );
 };
-
 // ==================== PRIMARY ALERT CARD COMPONENT ====================
 
 export const PrimaryAlertCard: React.FC<PrimaryAlertCardProps> = ({
@@ -466,7 +523,7 @@ export const PrimaryAlertCard: React.FC<PrimaryAlertCardProps> = ({
   onClose,
   onAffectedItemClick,
   onPositionChange,
-  onSubmitToIncidentManagement,
+  onViewIncidentDetails,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const isSecurityAlert = alert.category === AlertCategory.SECURITY;
@@ -548,7 +605,7 @@ export const PrimaryAlertCard: React.FC<PrimaryAlertCardProps> = ({
     return mergedItems.length;
   };
 
-  const isSubmitEnabled = () => {
+  const isViewIncidentDetailsEnabled = () => {
     if (!isSecurityAlert) return false;
     return getPotentiallyRelatedCount() === 0;
   };
@@ -967,7 +1024,7 @@ export const PrimaryAlertCard: React.FC<PrimaryAlertCardProps> = ({
         {isSecurityAlert ? (
           <Tooltip
             title={
-              isSubmitEnabled()
+              isViewIncidentDetailsEnabled()
                 ? ""
                 : "address Potentially Related Alerts first"
             }
@@ -975,21 +1032,21 @@ export const PrimaryAlertCard: React.FC<PrimaryAlertCardProps> = ({
           >
             <span>
               <ActionButton
-                buttonVariant={isSubmitEnabled() ? "enabled" : "disabled"}
+                buttonvariant={isViewIncidentDetailsEnabled() ? "enabled" : "disabled"}
                 onClick={() => {
-                  if (isSubmitEnabled()) {
-                    onSubmitToIncidentManagement?.();
+                  if (isViewIncidentDetailsEnabled()) {
+                    onViewIncidentDetails?.();
                   }
                 }}
-                disabled={!isSubmitEnabled()}
+                disabled={!isViewIncidentDetailsEnabled()}
               >
-                Submit to Incident Management
+                View Incident Details
               </ActionButton>
             </span>
           </Tooltip>
         ) : (
           <ActionButton
-            buttonVariant="enabled"
+            buttonvariant="enabled"
             onClick={() => {
               console.log("Create CWO clicked for alert:", alert.description);
               setShowCWODialog(true);

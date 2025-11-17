@@ -139,6 +139,20 @@ export interface FDApi {
       id: string;
       objectIds: string[] | string;
     }) => Promise<{ data: any }>;
+    hideActors: (data: {
+      id: string;
+      objectIds: string[] | string;
+    }) => Promise<{ data: any }>;
+    showActors: (data: {
+      id: string;
+      objectIds: string[] | string;
+    }) => Promise<{ data: any }>;
+    hide: (
+      ids: string | string[],
+    )=> Promise<{ data: any }>;
+    show: (
+      ids: string | string[],
+    )=> Promise<{ data: any }>;
   };
   infoTree: {
     get: () => Promise<{ infotree: LayerTreeApiItem[] }>;

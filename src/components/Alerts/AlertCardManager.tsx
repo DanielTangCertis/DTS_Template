@@ -6,6 +6,7 @@ import {
   SecondaryCardData,
   MergedItemData,
   CARD_CONSTANTS,
+  AlertData,
 } from "./AlertCard";
 import { alertData } from "@/data/alertData";
 import { AlertCategory } from "@/types/digitalTwin.types";
@@ -17,6 +18,8 @@ import { useDigitalTwinApi } from "@/hooks/useDigitalTwinApi";
 // Constants
 const INCIDENT_MANAGEMENT_URL = "https://your-incident-management-url.com"; // TODO: Replace with actual URL
 const OD_LINE_COLOR_GREEN = "RGB(0,255,0)";
+const HIGHLIGHT_ON_COLOR = [0.75, 0.05, 0.05, 0.1];
+const HIGHLIGHT_OFF_COLOR = [0.75, 0.05, 0.05, 0];
 
 export const AlertCardManager: React.FC = () => {
   const { onAlertCardShow } = useDigitalTwinService();
@@ -71,10 +74,12 @@ export const AlertCardManager: React.FC = () => {
     y: window.innerHeight * CARD_CONSTANTS.PRIMARY_INITIAL_TOPY,
   });
 
-  const [baseFontSize, setBaseFontSize] = useState(0);
+  const [baseFontSize, setBaseFontSize] = useState<number>(0);
+  const [currentAlert, setCurrentAlert] = useState<AlertData>();
 
-  // Calculate base font size and store in state
+  // Initialisation logic
   useEffect(() => {
+    // Calculate base font size and store in state
     const size = getBaseFontSizeInPixels();
     setBaseFontSize(size);
   }, []);
@@ -94,6 +99,7 @@ export const AlertCardManager: React.FC = () => {
 
       // Get alert data
       const alert = alertData.find((a) => a.objectUUID === objectUUID);
+      setCurrentAlert(alert);
       if (!alert) return unsubscribe;
 
       // Set initial display for non-security alerts (main item selected by default)
@@ -112,8 +118,13 @@ export const AlertCardManager: React.FC = () => {
             coordinates: [mainCoords, mainCoords],
           },
         ]);
-        // await focusODLines(["od_main_0"]); //try using focusActors instead
-        // focusActors(data:{alert.tileLayerID,alert.objectUUID});
+        // await focusODLines(["od_main_0"]); //use focusActors instead to focus on the camera directly
+        focusActors(
+          { id: alert.tileLayerID, objectIds: [alert.objectUUID] },
+          1.5,
+          0.5,
+          [-20.243635, -84.347923, 0]
+        );
       }
 
       // X-ray setup
@@ -142,7 +153,8 @@ export const AlertCardManager: React.FC = () => {
             `layersToExclude: ${layersToExclude}`,
             `layersToXray: ${layersToXray}`
           );
-          setXrayForLayers(true, layersToXray, xrayColor);
+          // setXrayForLayers(true, layersToXray, xrayColor); //try hide and show instead
+          window.fdapi.tileLayer.hide(layersToXray);
         }
       }
 
@@ -153,8 +165,8 @@ export const AlertCardManager: React.FC = () => {
           highlightTimerRef,
           tileLayerID,
           objectUUID,
-          [0.75, 0.05, 0.05, 0.1], // on color
-          [0.75, 0.05, 0.05, 0], // off color
+          HIGHLIGHT_ON_COLOR,
+          HIGHLIGHT_OFF_COLOR,
           1000 // interval
         );
       }
@@ -197,8 +209,8 @@ export const AlertCardManager: React.FC = () => {
       highlightTimerRef,
       item.tileLayerID,
       item.objectUUIDs,
-      [0.75, 0.05, 0.05, 0.1], // on color
-      [0.75, 0.05, 0.05, 0], // off color
+      HIGHLIGHT_ON_COLOR,
+      HIGHLIGHT_OFF_COLOR,
       1000 // interval
     );
   };
@@ -253,7 +265,13 @@ export const AlertCardManager: React.FC = () => {
             coordinates: [mainCoords, mainCoords],
           },
         ]);
-        await focusODLines(["od_main_0"]);
+        // await focusODLines(["od_main_0"]);
+        focusActors(
+          { id: alert.tileLayerID, objectIds: [alert.objectUUID] },
+          1.5,
+          0.5,
+          [-20.243635, -84.347923, 0]
+        );
       }
     } else {
       // SELECT: Toggle ON - Add to selection and create OD line
@@ -375,11 +393,64 @@ export const AlertCardManager: React.FC = () => {
       // No lines left, create and focus on main→main
       const activeAlert = state.activeAlertCard;
       if (activeAlert) {
-        const alert = alertData.find(
-          (a) => a.objectUUID === activeAlert.alertKey
-        );
+        const alert = currentAlert;
         if (alert) {
           const mainCoords = alert.coordinates;
+          await addODLines([
+            {
+              id: "od_main_0",
+              coordinates: [mainCoords, mainCoords],
+            },
+          ]);
+          // await focusODLines(["od_main_0"]);
+          focusActors(
+            { id: alert.tileLayerID, objectIds: [alert.objectUUID] },
+            1.5,
+            0.5,
+            [-20.243635, -84.347923, 0]
+          );
+        }
+      }
+    }
+
+    // Reposition remaining secondary cards
+    repositionSecondaryCards();
+  };
+
+  const handleZoomToggle = async (
+    item: AffectedItem,
+    type: "upstream" | "downstream",
+    index: number,
+    currentZoomState: boolean
+  ) => {
+    if (!currentZoomState) {
+      // Currently zoomed out. show item tilelayer, start blinking highlight, zoom in
+      window.fdapi.tileLayer.show(item.tileLayerID);
+      startBlinkingHighlight(
+        highlightTimerRef,
+        item.tileLayerID,
+        item.objectUUIDs,
+        HIGHLIGHT_ON_COLOR,
+        HIGHLIGHT_OFF_COLOR,
+        1000 // interval
+      );
+      focusActors({ id: item.tileLayerID, objectIds: item.objectUUIDs });
+    } else {
+      // Currently zoomed in. hide item tilelayer, stop blinking highlight, zoom out to OD lines view
+      window.fdapi.tileLayer.hide(item.tileLayerID);
+      stopBlinkingHighlight(highlightTimerRef, true);
+
+      const remainingIds = getAllCurrentLineIds(
+        selectedSecurityItems,
+        mergedItems
+      );
+
+      if (remainingIds.length > 0) {
+        await focusODLines(remainingIds);
+      } else {
+        // No lines left, create and focus on main→main
+        if (currentAlert) {
+          const mainCoords = currentAlert.coordinates;
           await addODLines([
             {
               id: "od_main_0",
@@ -390,9 +461,6 @@ export const AlertCardManager: React.FC = () => {
         }
       }
     }
-
-    // Reposition remaining secondary cards
-    repositionSecondaryCards();
   };
 
   const repositionSecondaryCards = () => {
@@ -418,18 +486,18 @@ export const AlertCardManager: React.FC = () => {
     const activeAlert = state.activeAlertCard;
     if (!activeAlert) return;
 
-    const alert = alertData.find((a) => a.objectUUID === activeAlert.alertKey);
-    if (!alert) return;
+    // const alert = alertData.find((a) => a.objectUUID === activeAlert.alertKey);
+    if (!currentAlert) return;
 
     // Route to appropriate handler based on category
-    if (alert.category === AlertCategory.SECURITY) {
+    if (currentAlert.category === AlertCategory.SECURITY) {
       // Security alerts don't have a "main" button that should be clickable
       if (type !== "main") {
         handleSecurityAffectedItemClick(
           item,
           type as "upstream" | "downstream",
           index,
-          alert
+          currentAlert
         );
       }
     } else {
@@ -474,7 +542,8 @@ export const AlertCardManager: React.FC = () => {
 
     // Disable XRAY
     if (xrayedLayersRef.current.length > 0) {
-      setXrayForLayers(false, xrayedLayersRef.current, undefined);
+      // setXrayForLayers(false, xrayedLayersRef.current, undefined); //try hide and show instead
+      window.fdapi.tileLayer.show(xrayedLayersRef.current);
       xrayedLayersRef.current = [];
     }
 
@@ -482,8 +551,8 @@ export const AlertCardManager: React.FC = () => {
     setCamera(34738.245, 34043.015312, 93.53667, -14.999996, 130.650467, 0);
   };
 
-  const handleSubmitToIncidentManagement = async () => {
-    console.log("Submitting to Incident Management");
+  const handleViewIncidentDetails = async () => {
+    console.log("View Incident Details");
 
     // Clear OD Lines first
     await clearODLines();
@@ -507,7 +576,8 @@ export const AlertCardManager: React.FC = () => {
 
     // Disable XRAY
     if (xrayedLayersRef.current.length > 0) {
-      setXrayForLayers(false, xrayedLayersRef.current, undefined);
+      // setXrayForLayers(false, xrayedLayersRef.current, undefined); //try hide and show instead
+      window.fdapi.tileLayer.show(xrayedLayersRef.current);
       xrayedLayersRef.current = [];
     }
 
@@ -519,7 +589,7 @@ export const AlertCardManager: React.FC = () => {
 
   if (state.activeAlertCard !== null) {
     const activeAlert = state.activeAlertCard;
-    const alert = alertData.find((a) => a.objectUUID === activeAlert.alertKey);
+    const alert = currentAlert;
 
     if (!alert) {
       console.warn(`Alert not found for objectUUID: ${activeAlert.alertKey}`);
@@ -550,7 +620,7 @@ export const AlertCardManager: React.FC = () => {
           onClose={handleClose}
           onAffectedItemClick={handleAffectedItemClick}
           onPositionChange={handlePositionChange}
-          onSubmitToIncidentManagement={handleSubmitToIncidentManagement}
+          onViewIncidentDetails={handleViewIncidentDetails}
         />
 
         {/* Secondary Alert Cards (Security only) */}
@@ -564,6 +634,7 @@ export const AlertCardManager: React.FC = () => {
               position={card.position}
               onYes={handleSecondaryCardYes}
               onNo={handleSecondaryCardNo}
+              onZoomToggle={handleZoomToggle}
             />
           ))}
       </>
