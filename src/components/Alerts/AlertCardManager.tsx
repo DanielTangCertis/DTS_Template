@@ -112,7 +112,8 @@ export const AlertCardManager: React.FC = () => {
             coordinates: [mainCoords, mainCoords],
           },
         ]);
-        await focusODLines(["od_main_0"]);
+        // await focusODLines(["od_main_0"]); //try using focusActors instead
+        // focusActors(data:{alert.tileLayerID,alert.objectUUID});
       }
 
       // X-ray setup

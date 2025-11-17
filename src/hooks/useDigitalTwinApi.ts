@@ -454,29 +454,32 @@ export const useDigitalTwinApi = () => {
     const IconOnHover = new Image();
     // marker data
     let markerProps: any = [];
-
+    const htmlElement = document.documentElement;
+    const computedStyle = window.getComputedStyle(htmlElement);
+    const fontSize = parseFloat(computedStyle.getPropertyValue("font-size")); //gets the page default font size in pixels, usually 16px
+    let _imageSize = 4 * fontSize;
     switch (markerType) {
       case "ALERT":
         Icon.src = "/assets/icons/events.png"; //MUST USE PNG
         IconOnHover.src = "/assets/icons/events512.png"; //MUST USE PNG
-
         markerProps = data.map((item: any) => {
           return {
             id: "alert_" + item.objectUUID,
             coordinate: item.coordinates,
             coordinateType: 0, //default 0 is the projection coordinate system, can also be set to latitude and longitude space coordinate system value of 1
-            anchors: [-12, 24], // (-0.5x, y) -> see imageSize
+            anchors: [-0.5 * _imageSize, _imageSize], // (-0.5x, y) -> see imageSize
             range: [0, 10000], //visual range [10, 10000]
             imagePath: Icon.src,
             // hoverImagePath: AlertIconOnHover.src,
-            imageSize: [32, 32], // the size of the image
+            imageSize: [_imageSize, _imageSize], // the size of the image
+            // imageSize: [32, 32], // the size of the image
             fixedSize: false, // image fixed size, range of values: false adaptive, near large, far small, true fixed size, default value: false
             text: item.description, //the text to be displayed
             useTextAnimation: false, //turn on the text expansion animation effect
             textRange: [0, 500], //the visible range of the text [near-crop distance, far-crop distance]
             textOffset: [0, 0], // text offset
             textBackgroundColor: [0, 0, 0, 0], // text background color
-            fontSize: 10, // font size
+            fontSize: fontSize, // font size
             fontOutlineSize: 1, // font outline size
             fontColor: "#ffffff",
             fontOutlineColor: "#000000",
@@ -496,18 +499,18 @@ export const useDigitalTwinApi = () => {
             id: "camera_" + item.UUID,
             coordinate: item.location,
             coordinateType: 0, //default 0 is the projection coordinate system, can also be set to latitude and longitude space coordinate system value of 1
-            anchors: [-12, 24], // (-0.5x, y) -> see imageSize
+            anchors: [-0.5 * _imageSize, _imageSize], // (-0.5x, y) -> see imageSize
             range: [0, 500], //visual range [10, 10000]
             imagePath: Icon.src,
             // hoverImagePath: AlertIconOnHover.src,
-            imageSize: [32, 32], // the size of the image
+            imageSize: [_imageSize, _imageSize], // the size of the image
             fixedSize: false, // image fixed size, range of values: false adaptive, near large, far small, true fixed size, default value: false
             // text: item.AssetName //the text to be displayed
             useTextAnimation: false, //turn on the text expansion animation effect
             textRange: [0, 500], //the visible range of the text [near-crop distance, far-crop distance]
             textOffset: [0, 0], // text offset
             textBackgroundColor: [0, 0, 0, 0], // text background color
-            fontSize: 10, // font size
+            fontSize: fontSize, // font size
             fontOutlineSize: 1, // font outline size
             fontColor: "#ffffff",
             fontOutlineColor: "#000000",

@@ -15,7 +15,8 @@ import { AlertStatus, AlertCategory } from "@/types/digitalTwin.types";
 import { CreateCWODialog } from "../CreateCWODialog/CreateCWODialog";
 
 // ==================== CONSTANTS ====================
-export const CARD_CONSTANTS = { // in rem
+export const CARD_CONSTANTS = {
+  // in rem
   PRIMARY_WIDTH: 24,
   PRIMARY_MIN_WIDTH: 20, // (keep for reference)
   PRIMARY_MAX_WIDTH: 28, // (keep for reference)
@@ -244,17 +245,19 @@ const MergeButton = styled(Button)<{ mergeType: "yes" | "no" }>(
   })
 );
 
-const NumberedBadge = styled(Badge)({
-  "& .MuiBadge-badge": {
-    backgroundColor: "#ff9800",
-    color: "#ffffff",
-    fontSize: "0.625rem",
-    fontWeight: "bold",
-    height: "1.25rem",
-    minWidth: "1.25rem",
-    borderRadius: "50%",
-    fontFamily: "General Sans, Arial, sans-serif",
-  },
+const NumberedBadge = styled(Box)({
+  backgroundColor: "#ff9800",
+  color: "#ffffff",
+  fontSize: "0.625rem",
+  fontWeight: "bold",
+  height: "1.25rem",
+  minWidth: "1.25rem",
+  borderRadius: "50%",
+  fontFamily: "General Sans, Arial, sans-serif",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "0 0.375rem",
 });
 
 const MergedChip = styled(Chip)({
@@ -438,10 +441,7 @@ export const SecondaryAlertCard: React.FC<SecondaryAlertCardProps> = ({
 
       {/* Yes/No Buttons */}
       <Box sx={{ display: "flex", gap: "0.5rem" }}>
-        <MergeButton
-          mergeType="yes"
-          onClick={() => onYes(item, type, index)}
-        >
+        <MergeButton mergeType="yes" onClick={() => onYes(item, type, index)}>
           Yes
         </MergeButton>
         <MergeButton mergeType="no" onClick={() => onNo(item, type, index)}>
@@ -735,10 +735,7 @@ export const PrimaryAlertCard: React.FC<PrimaryAlertCardProps> = ({
                   >
                     Potentially Related
                   </Typography>
-                  <NumberedBadge
-                    badgeContent={getPotentiallyRelatedCount()}
-                    color="primary"
-                  />
+                  <NumberedBadge>{getPotentiallyRelatedCount()}</NumberedBadge>
                 </Box>
 
                 <Box
@@ -808,10 +805,7 @@ export const PrimaryAlertCard: React.FC<PrimaryAlertCardProps> = ({
                   >
                     Merged
                   </Typography>
-                  <NumberedBadge
-                    badgeContent={getMergedCount()}
-                    color="primary"
-                  />
+                  <NumberedBadge>{getMergedCount()}</NumberedBadge>
                 </Box>
 
                 <Box
