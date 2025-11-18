@@ -61,6 +61,7 @@ export interface getObjectIDsResponse {
 export enum MarkerType {
   ALERT = "ALERT",
   CAMERA = "CAMERA",
+  OFFICER = "OFFICER",
 }
 
 export enum AlertStatus {

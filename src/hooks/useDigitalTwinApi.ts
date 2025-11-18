@@ -502,7 +502,7 @@ export const useDigitalTwinApi = () => {
             anchors: [-0.5 * _imageSize, _imageSize], // (-0.5x, y) -> see imageSize
             range: [0, 500], //visual range [10, 10000]
             imagePath: Icon.src,
-            // hoverImagePath: AlertIconOnHover.src,
+            hoverImagePath: IconOnHover.src,
             imageSize: [_imageSize, _imageSize], // the size of the image
             fixedSize: false, // image fixed size, range of values: false adaptive, near large, far small, true fixed size, default value: false
             // text: item.AssetName //the text to be displayed
@@ -531,6 +531,52 @@ export const useDigitalTwinApi = () => {
             occlusionCull: false, // Whether to participate in occlusion culling
           };
         });
+
+        break;
+      case "OFFICER":
+        //FLATTEN the data to a single array
+        markerProps = data.map(
+          (item: {
+            name: string;
+            picture: string;
+            coordinates: number[];
+            contact: string;
+          }) => {
+            Icon.src = item.picture;
+            IconOnHover.src = item.picture;
+            return {
+              id: "officer_" + item.name,
+              coordinate: item.coordinates,
+              coordinateType: 0, //default 0 is the projection coordinate system, can also be set to latitude and longitude space coordinate system value of 1
+              anchors: [-0.5 * _imageSize, _imageSize], // (-0.5x, y) -> see imageSize
+              range: [0, 500], //visual range [10, 10000]
+              imagePath: Icon.src,
+              hoverImagePath: IconOnHover.src,
+              imageSize: [_imageSize, _imageSize], // the size of the image
+              fixedSize: false, // image fixed size, range of values: false adaptive, near large, far small, true fixed size, default value: false
+              // text: item.name //the text to be displayed
+              useTextAnimation: false, //turn on the text expansion animation effect
+              textRange: [0, 500], //the visible range of the text [near-crop distance, far-crop distance]
+              textOffset: [0, 0], // text offset
+              textBackgroundColor: [0, 0, 0, 0], // text background color
+              fontSize: fontSize, // font size
+              fontOutlineSize: 1, // font outline size
+              fontColor: "#ffffff",
+              fontOutlineColor: "#000000",
+              showLine: false, //whether to show the vertical traction line below the markup point
+              lineSize: [2, 50], //the width and height of the vertical tractor line [width, height]
+              lineColor: [
+                0.2274509803921569, 0.8156862745098039, 0.9843137254901961, 1,
+              ], //color of vertical traction line
+              lineOffset: [0, 0], //vertical traction line offset
+              autoHidePopupWindow: true, //whether to close the popup window automatically after losing focus
+              autoHeight: false, // Auto determine if there is an object below
+              displayMode: 2, // display mode
+              priority: 0, // the priority of avoidance
+              occlusionCull: false, // Whether to participate in occlusion culling
+            };
+          }
+        );
 
         break;
       default:

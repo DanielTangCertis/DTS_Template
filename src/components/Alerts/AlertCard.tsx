@@ -494,7 +494,7 @@ export const SecondaryAlertCard: React.FC<SecondaryAlertCardProps> = ({
           color: "rgba(255, 255, 255, 0.9)",
         }}
       >
-        Merge Alert with Main?
+        Merge with Main Incident?
       </Typography>
 
       {/* Yes/No Buttons */}

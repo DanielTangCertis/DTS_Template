@@ -125,11 +125,11 @@ export const Header: React.FC<HeaderProps> = ({
       newState
         ? setCamera(
             //change to top view if cameras are on
-            34543.195,
-            33770.527813,
-            251.48252,
-            -85.998886,
-            168.460464,
+            34535.174695,
+            33781.702173,
+            199.610371,
+            -85.998688,
+            168.460358,
             0
           )
         : setCamera(
