@@ -3,7 +3,7 @@ import { useDigitalTwinContext } from "@/contexts/DigitalTwinContext";
 import { useDigitalTwinApi } from "@/hooks/useDigitalTwinApi";
 import { alertData } from "@/data/alertData";
 import * as CameraData from "@/data/cameraData";
-import { officers } from "@/data/officerData";
+import { officerData } from "@/data/officerData";
 
 const InitializationHandler: React.FC = () => {
   const { state, dispatch } = useDigitalTwinContext();
@@ -45,7 +45,10 @@ const InitializationHandler: React.FC = () => {
       /***
        * CREATE MARKERS FOR OFFICERS
        */
-      createMarker(window.fdapi, MarkerType.OFFICER, officers);
+      createMarker(window.fdapi, MarkerType.OFFICER, officerData);
+      let officerIDs = officerData.map((item: any) => "officer_" + item.name);
+      window.fdapi.marker.hide(officerIDs);
+      dispatch({ type: "SET_OFFICER_IDs", payload: officerIDs });
     }
   }, [coordsForCameraOrbit, playerIsReady, startCameraOrbit]); //don't include dispatch here
 

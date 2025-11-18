@@ -11,6 +11,7 @@ interface DigitalTwinState {
   xrayColor: [number, number, number, number];
   isAlertMarkersShown: boolean;
   isCCTVMarkersShown: boolean;
+  isOfficersMarkersShown: boolean;
   activeAlertCard: {
     alertKey: string;
     position: { x: number; y: number };
@@ -18,6 +19,7 @@ interface DigitalTwinState {
   camOrbitTimer: any;
   alertIDs: string[];
   CCTVIDs: string[];
+  OfficerIDs: string[];
 }
 
 export type DigitalTwinAction =
@@ -33,8 +35,13 @@ export type DigitalTwinAction =
       type: "SET_ALERT_IDs";
       payload: string[];
     }
+  | {
+      type: "SET_OFFICER_IDs";
+      payload: string[];
+    }
   | { type: "SET_ALERT_MARKERS"; payload: boolean }
   | { type: "SET_CCTV_MARKERS"; payload: boolean }
+  | { type: "SET_OFFICER_MARKERS"; payload: boolean }
   | {
       type: "SHOW_ALERT_CARD";
       payload: { alertKey: string; position: { x: number; y: number } };
@@ -51,10 +58,12 @@ const initialState: DigitalTwinState = {
   xrayColor: [1, 1, 1, 0.005], // blue: [0, 0, 1, 0.25]， alt blue: [0.29019607843137253, 0.2725490196078431, 1, 0.005]
   isAlertMarkersShown: false,
   isCCTVMarkersShown: false,
+  isOfficersMarkersShown: false,
   activeAlertCard: null,
   camOrbitTimer: 1000000,
   alertIDs: [],
   CCTVIDs: [],
+  OfficerIDs: [],
 };
 
 const digitalTwinReducer = (
@@ -74,6 +83,8 @@ const digitalTwinReducer = (
       return { ...state, isAlertMarkersShown: action.payload };
     case "SET_CCTV_MARKERS":
       return { ...state, isCCTVMarkersShown: action.payload };
+    case "SET_OFFICER_MARKERS":
+      return { ...state, isOfficersMarkersShown: action.payload };
     case "SHOW_ALERT_CARD":
       return { ...state, activeAlertCard: action.payload };
     case "HIDE_ALERT_CARD":
@@ -84,6 +95,8 @@ const digitalTwinReducer = (
       return { ...state, alertIDs: action.payload };
     case "SET_CCTV_IDs":
       return { ...state, CCTVIDs: action.payload };
+    case "SET_OFFICER_IDs":
+      return { ...state, OfficerIDs: action.payload };
     default:
       return state;
   }

@@ -226,9 +226,7 @@ class DigitalTwinService {
             );
             window.fdapi.marker.showPopupWindow(markerID);
           } else if (markerID.startsWith("officer")) {
-            console.log("showing officers...")
-            const officerName = markerID.replace("officer_", "");
-            //SEARCH THROUGH THE OFFICER DATA AND GET THE ENTRY FOR THE RELEVANT OFFICER, SHOW INFO ON A CARD WITHOUT HAVING TO CLICK ON THE MARKER.
+            //do something
           }
         }
         break;

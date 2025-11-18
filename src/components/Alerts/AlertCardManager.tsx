@@ -9,6 +9,7 @@ import {
   AlertData,
 } from "./AlertCard";
 import { alertData } from "@/data/alertData";
+import { officerData } from "@/data/officerData";
 import { AlertCategory } from "@/types/digitalTwin.types";
 import { mapCategoryToTilelayerIDs } from "@/data/tileLayerData";
 import { useDigitalTwinService } from "@/services/DigitalTwinService";
@@ -64,6 +65,8 @@ export const AlertCardManager: React.FC = () => {
   const [dismissedItems, setDismissedItems] = useState<
     Array<{ type: "upstream" | "downstream"; index: number }>
   >([]);
+
+  const [isShowingOfficers, setIsShowingOfficers] = useState(false);
 
   // Shared state
   const [savedCardPosition, setSavedCardPosition] = useState<{
@@ -524,6 +527,12 @@ export const AlertCardManager: React.FC = () => {
   };
 
   const handleClose = async () => {
+    // Hide officers if showing
+    if (isShowingOfficers && state.OfficerIDs.length > 0) {
+      window.fdapi.marker.hide(state.OfficerIDs);
+      setIsShowingOfficers(false);
+    }
+
     // Clear OD Lines first
     await clearODLines();
 
@@ -585,6 +594,69 @@ export const AlertCardManager: React.FC = () => {
     setCamera(34738.245, 34043.015312, 93.53667, -14.999996, 130.650467, 0);
   };
 
+  const canShowOfficers = (): boolean => {
+    if (!currentAlert || currentAlert.category !== AlertCategory.SECURITY) {
+      return false;
+    }
+
+    // Check if all potentially related items have been addressed
+    const upstreamCount = currentAlert.affected.upstream.length;
+    const downstreamCount = currentAlert.affected.downstream.length;
+    const totalAffected = upstreamCount + downstreamCount;
+
+    const addressedCount = mergedItems.length + dismissedItems.length;
+
+    return addressedCount === totalAffected;
+  };
+
+  const handleShowAvailableOfficers = async () => {
+    if (!currentAlert) return;
+
+    if (!isShowingOfficers) {
+      // Toggle ON: Show officers
+
+      // 1. Change camera to top-down view
+      setCamera(
+        34535.174695,
+        33781.702173,
+        199.610371,
+        -85.998688,
+        168.460358,
+        0
+      );
+
+      // 2. Calculate distances and update marker text for each officer
+      for (let i = 0; i < state.OfficerIDs.length; i++) {
+        const officerId = state.OfficerIDs[i];
+        const name = officerId.replace("officer_", "");
+        const officer = officerData.find((o) => o.name === name);
+
+        if (officer) {
+          const [x1, y1, z1] = officer.coordinates;
+          const [x2, y2, z2] = currentAlert.coordinates;
+
+          // Calculate Euclidean distance and round to nearest integer
+          const distance = Math.round(
+            Math.sqrt(
+              Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2) + Math.pow(z2 - z1, 2)
+            )
+          );
+
+          // Update marker text
+          window.fdapi.marker.setText(officerId, `${distance} meters`);
+        }
+      }
+
+      // 3. Show all officer markers
+      window.fdapi.marker.show(state.OfficerIDs);
+      setIsShowingOfficers(true);
+    } else {
+      // Toggle OFF: Hide officers
+      window.fdapi.marker.hide(state.OfficerIDs);
+      setIsShowingOfficers(false);
+    }
+  };
+
   // ==================== RENDER ====================
 
   if (state.activeAlertCard !== null) {
@@ -617,10 +689,13 @@ export const AlertCardManager: React.FC = () => {
           selectedSecurityItems={selectedSecurityItems}
           mergedItems={mergedItems}
           dismissedItems={dismissedItems}
+          showOfficersEnabled={canShowOfficers()}
+          isShowingOfficers={isShowingOfficers}
           onClose={handleClose}
           onAffectedItemClick={handleAffectedItemClick}
           onPositionChange={handlePositionChange}
           onViewIncidentDetails={handleViewIncidentDetails}
+          onShowAvailableOfficers={handleShowAvailableOfficers}
         />
 
         {/* Secondary Alert Cards (Security only) */}

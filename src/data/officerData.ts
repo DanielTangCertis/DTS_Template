@@ -1,4 +1,4 @@
-export const officers = [
+export const officerData = [
   {
     name: "Mohammad Haiqal",
     picture: "/assets/officers/haiqal.png",

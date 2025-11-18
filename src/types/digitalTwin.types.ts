@@ -148,12 +148,8 @@ export interface FDApi {
       id: string;
       objectIds: string[] | string;
     }) => Promise<{ data: any }>;
-    hide: (
-      ids: string | string[],
-    )=> Promise<{ data: any }>;
-    show: (
-      ids: string | string[],
-    )=> Promise<{ data: any }>;
+    hide: (ids: string | string[]) => Promise<{ data: any }>;
+    show: (ids: string | string[]) => Promise<{ data: any }>;
   };
   infoTree: {
     get: () => Promise<{ infotree: LayerTreeApiItem[] }>;
@@ -201,6 +197,7 @@ export interface FDApi {
     setMainUIVisibility: (visible: boolean) => void;
   };
   marker: {
+    setText: (id: string, newVal: string) => Promise<void>;
     clear: () => Promise<void>;
     hide: (ids: string[]) => Promise<void>;
     show: (ids: string[]) => Promise<void>;

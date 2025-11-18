@@ -359,6 +359,9 @@ interface PrimaryAlertCardProps {
   ) => void;
   onPositionChange?: (position: { x: number; y: number }) => void;
   onViewIncidentDetails?: () => void;
+  showOfficersEnabled?: boolean;
+  isShowingOfficers?: boolean;
+  onShowAvailableOfficers?: () => void;
 }
 
 interface SecondaryAlertCardProps {
@@ -520,10 +523,13 @@ export const PrimaryAlertCard: React.FC<PrimaryAlertCardProps> = ({
   selectedSecurityItems = [],
   mergedItems = [],
   dismissedItems = [],
+  showOfficersEnabled = false,
+  isShowingOfficers = false,
   onClose,
   onAffectedItemClick,
   onPositionChange,
   onViewIncidentDetails,
+  onShowAvailableOfficers,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const isSecurityAlert = alert.category === AlertCategory.SECURITY;
@@ -1022,28 +1028,82 @@ export const PrimaryAlertCard: React.FC<PrimaryAlertCardProps> = ({
 
         {/* Action Button - Different for Security vs Non-Security */}
         {isSecurityAlert ? (
-          <Tooltip
-            title={
-              isViewIncidentDetailsEnabled()
-                ? ""
-                : "address Potentially Related Alerts first"
-            }
-            placement="top"
-          >
-            <span>
-              <ActionButton
-                buttonvariant={isViewIncidentDetailsEnabled() ? "enabled" : "disabled"}
-                onClick={() => {
-                  if (isViewIncidentDetailsEnabled()) {
-                    onViewIncidentDetails?.();
+          <>
+            {/* Show Available Officers Button (Security Alerts Only) */}
+            <Tooltip
+              title={
+                showOfficersEnabled
+                  ? ""
+                  : "address Potentially Related Alerts first"
+              }
+              placement="top"
+            >
+              <span>
+                <ActionButton
+                  buttonvariant={showOfficersEnabled ? "enabled" : "disabled"}
+                  onClick={() => {
+                    if (showOfficersEnabled) {
+                      onShowAvailableOfficers?.();
+                    }
+                  }}
+                  disabled={!showOfficersEnabled}
+                  sx={{
+                    marginTop: "1rem",
+                    backgroundColor: isShowingOfficers
+                      ? "#ff9800"
+                      : showOfficersEnabled
+                      ? "rgba(255, 255, 255, 0.1)"
+                      : "rgba(255, 255, 255, 0.05)",
+                    border: isShowingOfficers
+                      ? "1px solid #ff9800"
+                      : showOfficersEnabled
+                      ? "1px solid #ff9800"
+                      : "1px solid rgba(255, 255, 255, 0.2)",
+                    "&:hover": {
+                      backgroundColor: showOfficersEnabled
+                        ? isShowingOfficers
+                          ? "#ff7700"
+                          : "#ff7700"
+                        : "rgba(255, 255, 255, 0.1)",
+                      border: showOfficersEnabled
+                        ? "1px solid #ff7700"
+                        : "1px solid rgba(255, 255, 255, 0.2)",
+                    },
+                  }}
+                >
+                  {isShowingOfficers
+                    ? "Hide Available Officers"
+                    : "Show Available Officers"}
+                </ActionButton>
+              </span>
+            </Tooltip>
+
+            {/* View Incident Details Button */}
+            <Tooltip
+              title={
+                isViewIncidentDetailsEnabled()
+                  ? ""
+                  : "address Potentially Related Alerts first"
+              }
+              placement="top"
+            >
+              <span>
+                <ActionButton
+                  buttonvariant={
+                    isViewIncidentDetailsEnabled() ? "enabled" : "disabled"
                   }
-                }}
-                disabled={!isViewIncidentDetailsEnabled()}
-              >
-                View Incident Details
-              </ActionButton>
-            </span>
-          </Tooltip>
+                  onClick={() => {
+                    if (isViewIncidentDetailsEnabled()) {
+                      onViewIncidentDetails?.();
+                    }
+                  }}
+                  disabled={!isViewIncidentDetailsEnabled()}
+                >
+                  View Incident Details
+                </ActionButton>
+              </span>
+            </Tooltip>
+          </>
         ) : (
           <ActionButton
             buttonvariant="enabled"
